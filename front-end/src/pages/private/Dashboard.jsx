@@ -84,9 +84,11 @@ export default function Dashboard() {
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500" />
             </button>
             <div className="h-10 w-10 rounded-full border border-white/10 bg-gradient-to-tr from-blue-500 to-violet-500 p-[2px]">
-              <div className="h-full w-full rounded-full bg-zinc-950 flex items-center justify-center text-xs font-bold">
-                DN
-              </div>
+              <Link to="/profile">
+                <div className="h-full w-full rounded-full bg-zinc-950 flex items-center justify-center text-xs font-bold">
+                  DN
+                </div>
+              </Link>
             </div>
           </div>
         </header>
