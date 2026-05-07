@@ -37,7 +37,7 @@ export default function Dashboard() {
             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-zinc-900">
               <img src={DevLogo} alt="Logo" className="h-full w-full object-cover" />
             </div>
-            <span className="font-semibold tracking-tight">DevTrack</span>
+            <span className="font-semibold tracking-tight">DevTracker</span>
           </div>
         </div>
 
