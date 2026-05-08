@@ -1,117 +1,228 @@
-// src/App.jsx
+import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
-import DevLogo from "../../assets/DevLogoBranco.png";
+import { Link } from "react-router-dom";
 
-export default function App() {
+import DevLogo from "../../assets/DevLogoBranco.png";
+import {
+  isValidEmail,
+  isValidName,
+  validatePassword,
+  isValidUsername,
+} from "../../utils/validator";
+
+export default function Register() {
+  const [formData, setFormData] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+  });
+
+  const [errors, setErrors] = useState({});
+  const [githubMessage, setGithubMessage] = useState("");
+
   const handleGithubRegister = () => {
-    alert("GitHub signup is still under development.");
+    setGithubMessage("Registration with GitHub is still under development.");
   };
 
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  }
+
+  function validateForm() {
+    const newErrors = {};
+
+    if (!isValidName(formData.name)) {
+      newErrors.name = "Enter a name with at least 3 characters.";
+    }
+
+    if (!isValidUsername(formData.username)) {
+      newErrors.username = "Use 3 to 20 characters, without spaces.";
+    }
+
+    if (!isValidEmail(formData.email)) {
+      newErrors.email = "Enter a valid email address.";
+    }
+
+    const passwordErrors = validatePassword(formData.password);
+
+    if (passwordErrors.length > 0) {
+      newErrors.password =
+        "The password needs to have: " + passwordErrors.join(", ") + ".";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    if (!validateForm()) return;
+
+    console.log("Registration valid:", formData);
+    alert("Registration validated successfully.");
+  }
+
+  const inputClass = (field) =>
+    `w-full rounded-2xl border bg-black/40 px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-zinc-600 ${
+      errors[field]
+        ? "border-red-500/60 focus:border-red-500"
+        : "border-white/10 focus:border-blue-500/50"
+    }`;
+
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 py-10 text-white">
-      {/* Background Glow */}
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 py-8 text-white">
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute left-[-120px] top-[-120px] h-[420px] w-[420px] rounded-full bg-blue-500/10 blur-3xl" />
         <div className="absolute bottom-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-violet-500/10 blur-3xl" />
       </div>
 
-      {/* Register Card */}
-      <div className="relative z-10 w-full max-w-md rounded-[32px] border border-white/10 bg-zinc-950/90 p-8 backdrop-blur-xl">
-        {/* Back Button */}
-        <Link to="/" className="mb-8 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-zinc-400 transition hover:border-white/20 hover:text-white">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-
-        {/* Logo */}
-        <div className="mb-8 flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-zinc-900">
-            <img
-              src={DevLogo}
-              alt="DevTracker Logo"
-              className="h-full w-full object-cover"
-            />
-          </div>
-
-          <div>
-            <h1 className="text-xl font-semibold">Create account</h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              Start tracking your technical evolution.
-            </p>
-          </div>
-        </div>
-
-        {/* GitHub Button - AGORA COM SVG NATIVO */}
-        <button
-          onClick={handleGithubRegister}
-          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
-        >
-          <svg 
-            viewBox="0 0 24 24" 
-            className="h-5 w-5 fill-current" 
-            xmlns="http://www.w3.org/2000/svg"
+      <div className="relative z-10 w-full max-w-md rounded-[28px] border border-white/10 bg-zinc-950/90 p-6 backdrop-blur-xl">
+        <div className="mb-6 flex items-center gap-4">
+          <Link
+            to="/"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-zinc-400 transition hover:border-white/20 hover:text-white"
           >
-            <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-          </svg>
-          Continue with GitHub
-        </button>
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
 
-        {/* Divider */}
-        <div className="my-8 flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-zinc-900">
+              <img
+                src={DevLogo}
+                alt="DevTracker Logo"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div>
+              <h1 className="text-lg font-semibold">Create account</h1>
+              <p className="text-xs text-zinc-500">
+                Start tracking your evolution.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={handleGithubRegister}
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-medium text-white transition hover:border-blue-500/40 hover:bg-blue-500/10"
+          >
+            Continue with GitHub
+          </button>
+
+          {githubMessage && (
+            <p className="mt-2 text-center text-xs text-blue-400">
+              {githubMessage}
+            </p>
+          )}
+        </div>
+
+        <div className="my-6 flex items-center gap-4">
           <div className="h-px flex-1 bg-white/10" />
-          <span className="text-xs uppercase tracking-wider text-zinc-500">or</span>
+          <span className="text-xs uppercase tracking-wider text-zinc-500">
+            or
+          </span>
           <div className="h-px flex-1 bg-white/10" />
         </div>
 
-        {/* Form */}
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Full Name</label>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Full Name
+            </label>
             <input
+              name="name"
               type="text"
+              value={formData.name}
+              onChange={handleChange}
               placeholder="John Doe"
-              className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-blue-500/50"
+              className={inputClass("name")}
             />
+            {errors.name && (
+              <p className="mt-2 text-xs text-red-400">{errors.name}</p>
+            )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Username</label>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Username
+            </label>
             <input
+              name="username"
               type="text"
+              value={formData.username}
+              onChange={handleChange}
               placeholder="johndoe"
-              className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-blue-500/50"
+              className={inputClass("username")}
             />
+            {errors.username && (
+              <p className="mt-2 text-xs text-red-400">{errors.username}</p>
+            )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Email</label>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Email
+            </label>
             <input
+              name="email"
               type="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="john@email.com"
-              className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-blue-500/50"
+              className={inputClass("email")}
             />
+            {errors.email && (
+              <p className="mt-2 text-xs text-red-400">{errors.email}</p>
+            )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Password</label>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Password
+            </label>
             <input
+              name="password"
               type="password"
+              value={formData.password}
+              onChange={handleChange}
               placeholder="••••••••"
-              className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-blue-500/50"
+              className={inputClass("password")}
             />
+            {errors.password && (
+              <p className="mt-2 text-xs text-red-400">{errors.password}</p>
+            )}
           </div>
+
           <button
             type="submit"
-            className="mt-2 w-full rounded-2xl bg-white px-5 py-4 text-sm font-semibold text-black transition hover:scale-[1.01]"
+            className="mt-2 w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:scale-[1.01]"
           >
             Create Account
           </button>
         </form>
 
-        {/* Login Redirect */}
-        <div className="mt-8 flex items-center justify-center gap-2 text-sm">
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm">
           <span className="text-zinc-500">Already have an account?</span>
-          <Link to="/login" className="font-medium text-blue-400 transition hover:text-blue-300">
+          <Link
+            to="/login"
+            className="font-medium text-blue-400 transition hover:text-blue-300"
+          >
             Login
           </Link>
         </div>
