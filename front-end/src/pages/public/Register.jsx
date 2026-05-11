@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { apiRequest } from "../../services/api";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
 import {
@@ -11,6 +12,8 @@ import {
 } from "../../utils/validator";
 
 export default function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -18,10 +21,15 @@ export default function Register() {
     password: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [githubMessage, setGithubMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const handleGithubRegister = () => {
+    setSubmitError("");
+    setSuccessMessage("");
     setGithubMessage("Registration with GitHub is still under development.");
   };
 
@@ -37,6 +45,9 @@ export default function Register() {
       ...prev,
       [name]: "",
     }));
+
+    setSubmitError("");
+    setSuccessMessage("");
   }
 
   function validateForm() {
@@ -66,13 +77,42 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+
+    setGithubMessage("");
+    setSubmitError("");
+    setSuccessMessage("");
 
     if (!validateForm()) return;
 
-    console.log("Registration valid:", formData);
-    alert("Registration validated successfully.");
+    setIsLoading(true);
+
+    const payload = {
+      name: formData.name.trim(),
+      username: formData.username.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+    };
+
+    try {
+      await apiRequest("/user/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      setSuccessMessage(
+        "Account created successfully. Redirecting to login..."
+      );
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1200);
+    } catch (error) {
+      setSubmitError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const inputClass = (field) =>
@@ -120,7 +160,8 @@ export default function Register() {
           <button
             type="button"
             onClick={handleGithubRegister}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-medium text-white transition hover:border-blue-500/40 hover:bg-blue-500/10"
+            disabled={isLoading}
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-medium text-white transition hover:border-blue-500/40 hover:bg-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Continue with GitHub
           </button>
@@ -211,10 +252,23 @@ export default function Register() {
 
           <button
             type="submit"
-            className="mt-2 w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:scale-[1.01]"
+            disabled={isLoading}
+            className="mt-2 w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
           >
-            Create Account
+            {isLoading ? "Creating account..." : "Create Account"}
           </button>
+
+          {successMessage && (
+            <p className="text-center text-xs text-blue-400">
+              {successMessage}
+            </p>
+          )}
+
+          {submitError && (
+            <p className="text-center text-xs text-red-400">
+              {submitError}
+            </p>
+          )}
         </form>
 
         <div className="mt-6 flex items-center justify-center gap-2 text-sm">
