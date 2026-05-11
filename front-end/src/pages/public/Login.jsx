@@ -1,18 +1,26 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+
 import DevLogo from "../../assets/DevLogoBranco.png";
-import { Link } from "react-router-dom";
+import api from "../../services/api";
+import { saveToken } from "../../services/tokenService";
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    identifier: "",
+    email: "",
     password: "",
   });
 
   const [errors, setErrors] = useState({});
   const [githubMessage, setGithubMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const handleGithubLogin = () => {
+    setSubmitError("");
     setGithubMessage("Login com GitHub ainda está em desenvolvimento.");
   };
 
@@ -28,17 +36,19 @@ export default function Login() {
       ...prev,
       [name]: "",
     }));
+
+    setSubmitError("");
   }
 
   function validateLogin() {
     const newErrors = {};
 
-    if (!formData.identifier.trim()) {
-      newErrors.identifier = "Insert your username or email.";
+    if (!formData.email.trim()) {
+      newErrors.email = "Insert your email.";
     }
 
-    if (formData.identifier.length > 100) {
-      newErrors.identifier = "The field must have at most 100 characters.";
+    if (formData.email.length > 100) {
+      newErrors.email = "The field must have at most 100 characters.";
     }
 
     if (!formData.password) {
@@ -54,13 +64,40 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+
+    setGithubMessage("");
+    setSubmitError("");
 
     if (!validateLogin()) return;
 
-    console.log("Login válido:", formData);
-    alert("Login validado com sucesso.");
+    setIsLoading(true);
+
+    try {
+      const response = await api.post("/user/login", {
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+
+      const token = response.data?.token;
+
+      if (!token) {
+        throw new Error("Token não recebido pelo backend.");
+      }
+
+      saveToken(token);
+
+      navigate("/dashboard22");
+    } catch (error) {
+      setSubmitError(
+        error.response?.data?.message ||
+          error.message ||
+          "Email ou senha inválidos."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const inputClass = (field) =>
@@ -108,7 +145,8 @@ export default function Login() {
           <button
             type="button"
             onClick={handleGithubLogin}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-medium text-white transition hover:border-blue-500/40 hover:bg-blue-500/10"
+            disabled={isLoading}
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-medium text-white transition hover:border-blue-500/40 hover:bg-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Login with GitHub
           </button>
@@ -131,19 +169,19 @@ export default function Login() {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="mb-2 block text-sm text-zinc-400">
-              Username or Email
+              Email
             </label>
             <input
-              name="identifier"
-              type="text"
-              value={formData.identifier}
+              name="email"
+              type="email"
+              value={formData.email}
               onChange={handleChange}
               placeholder="johndoe@email.com"
-              className={inputClass("identifier")}
+              className={inputClass("email")}
             />
-            {errors.identifier && (
+            {errors.email && (
               <p className="mt-2 text-xs text-red-400">
-                {errors.identifier}
+                {errors.email}
               </p>
             )}
           </div>
@@ -176,10 +214,17 @@ export default function Login() {
 
           <button
             type="submit"
-            className="mt-2 w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:scale-[1.01]"
+            disabled={isLoading}
+            className="mt-2 w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-black transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
           >
-            Sign In
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
+
+          {submitError && (
+            <p className="text-center text-xs text-red-400">
+              {submitError}
+            </p>
+          )}
         </form>
 
         <div className="mt-6 flex items-center justify-center gap-2 text-sm">

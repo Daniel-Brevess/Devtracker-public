@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiRequest } from "../../services/api";
+import api from "../../services/api";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
 import {
@@ -96,10 +96,7 @@ export default function Register() {
     };
 
     try {
-      await apiRequest("/user/register", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      await api.post("/user/register", payload);
 
       setSuccessMessage(
         "Account created successfully. Redirecting to login..."

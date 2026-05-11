@@ -1,19 +1,32 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import axios from "axios";
+import { getToken, removeToken } from "./tokenService";
 
-export async function apiRequest(endpoint, options = {}) {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    ...options,
-  });
+const api = axios.create({
+  baseURL: "http://localhost:8080",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  const data = await response.json().catch(() => null);
+api.interceptors.request.use((config) => {
+  const token = getToken();
 
-  if (!response.ok) {
-    throw new Error(data?.message || "Erro ao enviar requisição.");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
-  return data;
-}
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      removeToken();
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default api;

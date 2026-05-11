@@ -1,6 +1,8 @@
 package org.danielbreves.backend.controller;
 
 import jakarta.validation.Valid;
+import org.danielbreves.backend.dto.user.LoginRequestDTO;
+import org.danielbreves.backend.dto.user.LoginResponseDTO;
 import org.danielbreves.backend.dto.user.UserRequestDTO;
 import org.danielbreves.backend.dto.user.UserResponseDTO;
 import org.danielbreves.backend.service.UserService;
@@ -23,6 +25,13 @@ public class UserController {
     ) {
         UserResponseDTO response = userService.registerUser(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/login")
+    public LoginResponseDTO loginUser(
+            @RequestBody LoginRequestDTO request
+    ) {
+        return userService.loginUser(request);
     }
 
 
