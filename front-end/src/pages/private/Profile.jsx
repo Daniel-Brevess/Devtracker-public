@@ -29,7 +29,7 @@ export default function Profile() {
 
       {/* Header/Nav */}
       <nav className="relative z-10 flex h-20 items-center justify-between px-8 border-b border-white/5 bg-black/20 backdrop-blur-md">
-        <Link to="/dashboard" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+        <Link to="/dashboard22" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
           <ArrowLeft className="h-5 w-5" />
           <span>Back to Dashboard</span>
         </Link>
