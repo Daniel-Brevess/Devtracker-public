@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
 import api from "../../services/api";
-import { saveToken } from "../../services/tokenService";
+import { saveToken, saveUser } from "../../services/tokenService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -80,13 +80,20 @@ export default function Login() {
         password: formData.password,
       });
 
-      const token = response.data?.token;
+      const { token, id, name, username, email } = response.data;
 
       if (!token) {
         throw new Error("Token não recebido pelo backend.");
       }
 
       saveToken(token);
+
+      saveUser({
+        id,
+        name,
+        username,
+        email,
+      });
 
       navigate("/dashboard22");
     } catch (error) {

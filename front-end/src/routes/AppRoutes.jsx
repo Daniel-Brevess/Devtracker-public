@@ -7,6 +7,7 @@ import Dashboard from "../pages/private/Dashboard";
 import Dashboard22 from "../pages/private/Dashboard22";
 import Profile from "../pages/private/Profile";
 import ProfileEdit from "../pages/private/ProfileEdit";
+import PrivateRoute from "./PrivateRoute";
 
 export default function AppRoutes() {
   return (
@@ -34,17 +35,29 @@ export default function AppRoutes() {
 
         <Route
           path="/profile"
-          element={<Profile />}
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
         />
 
         <Route
           path="/profileedit"
-          element={<ProfileEdit />}
+          element={
+            <PrivateRoute>
+              <ProfileEdit />
+            </PrivateRoute>
+          }
         />
 
         <Route
           path="/dashboard22"
-          element={<Dashboard22 />}
+          element={
+            <PrivateRoute>
+              <Dashboard22 />
+            </PrivateRoute>
+          }
         />
       </Routes>
     </BrowserRouter>

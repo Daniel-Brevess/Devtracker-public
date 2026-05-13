@@ -75,6 +75,7 @@ public class UserService {
         return new LoginResponseDTO(
                 user.getId(),
                 user.getName(),
+                user.getUsername(),
                 user.getEmail(),
                 "Login concluído",
                 token

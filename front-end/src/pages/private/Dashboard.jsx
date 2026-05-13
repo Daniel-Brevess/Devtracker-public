@@ -11,9 +11,21 @@ import {
   Plus
 } from "lucide-react";
 
+import { logout } from "../../services/tokenService";
+import { useNavigate } from "react-router-dom";
+
 import DevLogo from "../../assets/DevLogoBranco.png";
 
 export default function Dashboard() {
+
+  const navigate = useNavigate();
+
+  function handleLogout() {
+  logout();
+
+  navigate("/login");
+}
+
   const menuItems = [
     { icon: LayoutDashboard, label: "Overview", active: true },
     { icon: BarChart3, label: "Analytics", active: false },
@@ -58,11 +70,15 @@ export default function Dashboard() {
         </nav>
 
         <div className="p-4 border-t border-white/10">
-          <Link to="/" className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-zinc-500 hover:bg-red-500/10 hover:text-red-400 transition-all">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-zinc-500 transition-all hover:bg-red-500/10 hover:text-red-400"
+          >
             <LogOut className="h-5 w-5" />
             Logout
-          </Link>
+          </button>
         </div>
+        
       </aside>
 
       {/* --- MAIN CONTENT --- */}
