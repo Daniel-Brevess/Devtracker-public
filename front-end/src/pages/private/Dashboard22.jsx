@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard,
   BarChart3,
@@ -7,22 +7,57 @@ import {
   Settings,
   LogOut,
   Bell,
-  User,
   Terminal,
+  CreditCard,
+  UserCircle2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { logout } from "../../services/tokenService";
-import { useNavigate } from "react-router-dom";
+import { getCurrentUser, getUserInitials } from "../../services/userService";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
 
 export default function Dashboard2() {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-  
-    function handleLogout() {
+  const user = getCurrentUser();
+  const userInitials = getUserInitials();
+
+  const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
+  const [isSettingsCardOpen, setIsSettingsCardOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const profileCardRef = useRef(null);
+  const settingsCardRef = useRef(null);
+
+    useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        profileCardRef.current &&
+        !profileCardRef.current.contains(event.target)
+      ) {
+        setIsProfileCardOpen(false);
+      }
+
+      if (
+        settingsCardRef.current &&
+        !settingsCardRef.current.contains(event.target)
+      ) {
+        setIsSettingsCardOpen(false);
+        setIsAccountOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  function handleLogout() {
     logout();
-  
     navigate("/login");
   }
 
@@ -60,31 +95,97 @@ export default function Dashboard2() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-2 px-4">
-          {menuItems.map((item) => (
-            <button
-              key={item.label}
-              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                item.active
-                  ? "border border-white/10 bg-white/10 text-white"
-                  : "text-zinc-500 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </button>
-          ))}
-        </nav>
+<nav className="flex-1 space-y-2 px-4">
+  {menuItems.map((item) => {
+    const Icon = item.icon;
 
-        <div className="p-4 border-t border-white/10">
+    if (item.label === "Settings") {
+      return (
+        <div ref={settingsCardRef} key={item.label}>
           <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-zinc-500 transition-all hover:bg-red-500/10 hover:text-red-400"
+            type="button"
+            onClick={() =>
+              setIsSettingsCardOpen((currentState) => !currentState)
+            }
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-zinc-500 transition-all hover:bg-white/5 hover:text-white"
           >
-            <LogOut className="h-5 w-5" />
-            Logout
+            <Icon className="h-5 w-5" />
+            {item.label}
           </button>
+
+{isSettingsCardOpen && (
+  <div className="mt-2 rounded-3xl border border-white/10 bg-zinc-950/95 p-3 shadow-2xl shadow-black/30 backdrop-blur-xl">
+    <div className="space-y-1">
+      {/* Account */}
+      <div>
+        <button
+          type="button"
+          onClick={() =>
+            setIsAccountOpen((currentState) => !currentState)
+          }
+          className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm text-zinc-400 transition-all hover:bg-white/5 hover:text-white"
+        >
+          <UserCircle2 className="h-4 w-4" />
+          Account
+        </button>
+
+        {isAccountOpen && (
+          <div className="ml-3 mt-1 space-y-1 border-l border-white/10 pl-3">
+        <Link
+          to="/profileedit22"
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-zinc-500 transition-all hover:bg-white/5 hover:text-white"
+        >
+          <span className="font-mono text-blue-400">{">"}</span>
+          Edit profile
+        </Link>
+
+            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-zinc-500 transition-all hover:bg-red-500/10 hover:text-red-400">
+              <span className="font-mono text-red-400">{">"}</span>
+              Delete account
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Plan */}
+      <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm text-zinc-400 transition-all hover:bg-emerald-500/10 hover:text-emerald-400">
+        <CreditCard className="h-4 w-4" />
+        Plan
+      </button>
+
+      <div className="my-2 h-px bg-white/5" />
+
+      {/* Logout */}
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm text-zinc-400 transition-all hover:bg-red-500/10 hover:text-red-400"
+      >
+        <LogOut className="h-4 w-4" />
+        Logout
+      </button>
+    </div>
+  </div>
+)}
         </div>
+      );
+    }
+
+    return (
+      <button
+        key={item.label}
+        className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+          item.active
+            ? "border border-white/10 bg-white/10 text-white"
+            : "text-zinc-500 hover:bg-white/5 hover:text-white"
+        }`}
+      >
+        <Icon className="h-5 w-5" />
+        {item.label}
+      </button>
+    );
+  })}
+</nav>
       </aside>
 
       {/* Main */}
@@ -97,12 +198,49 @@ export default function Dashboard2() {
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500" />
             </button>
 
-            <Link
-              to="/profile"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition-all hover:text-white"
-            >
-              <User className="h-5 w-5" />
-            </Link>
+            {/* Profile Button + Card */}
+            <div ref={profileCardRef} className="relative">
+              <button
+                type="button"
+                onClick={() =>
+                  setIsProfileCardOpen((currentState) => !currentState)
+                }
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-gradient-to-tr from-blue-500 to-violet-500 p-[2px] transition-all hover:scale-[1.03]"
+              >
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-zinc-950 text-xs font-bold text-white">
+                  {userInitials}
+                </div>
+              </button>
+
+              {isProfileCardOpen && (
+                <div className="absolute right-0 top-14 w-72 rounded-3xl border border-white/10 bg-zinc-950/95 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-tr from-blue-500 to-violet-500 p-[2px]">
+                      <div className="flex h-full w-full items-center justify-center rounded-2xl bg-zinc-950 text-sm font-bold text-white">
+                        {userInitials}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <h3 className="truncate text-sm font-semibold text-white">
+                        {user?.name || "User"}
+                      </h3>
+
+                      <p className="mt-1 truncate text-xs text-zinc-500">
+                        @{user?.username || "username"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/5 bg-black/40 p-3">
+                    <p className="text-xs leading-relaxed text-zinc-500">
+                      Profile overview. More account details and profile
+                      settings will be available soon.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
