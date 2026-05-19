@@ -1,10 +1,7 @@
 package org.danielbreves.backend.service;
 
+import org.danielbreves.backend.dto.user.*;
 import org.danielbreves.backend.security.JwtService;
-import org.danielbreves.backend.dto.user.LoginRequestDTO;
-import org.danielbreves.backend.dto.user.LoginResponseDTO;
-import org.danielbreves.backend.dto.user.UserRequestDTO;
-import org.danielbreves.backend.dto.user.UserResponseDTO;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -79,6 +76,27 @@ public class UserService {
                 user.getEmail(),
                 "Login concluído",
                 token
+        );
+    }
+
+    public UserUpdateResponseDTO updateUser(
+            String currentEmail,
+            UserUpdateRequestDTO requestDTO
+    ) {
+
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setName(requestDTO.name());
+        user.setUsername(requestDTO.username());
+        user.setEmail(requestDTO.email());
+
+        User updatedUser = userRepository.save(user);
+
+        return new UserUpdateResponseDTO(
+                updatedUser.getName(),
+                updatedUser.getUsername(),
+                updatedUser.getEmail()
         );
     }
     }

@@ -1,15 +1,14 @@
 package org.danielbreves.backend.controller;
 
 import jakarta.validation.Valid;
-import org.danielbreves.backend.dto.user.LoginRequestDTO;
-import org.danielbreves.backend.dto.user.LoginResponseDTO;
-import org.danielbreves.backend.dto.user.UserRequestDTO;
-import org.danielbreves.backend.dto.user.UserResponseDTO;
+import org.danielbreves.backend.dto.user.*;
 import org.danielbreves.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping(value = "/user")
@@ -35,6 +34,20 @@ public class UserController {
             @RequestBody LoginRequestDTO request
     ) {
         return userService.loginUser(request);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<UserUpdateResponseDTO> updateUser(
+            @RequestBody @Valid UserUpdateRequestDTO requestDTO,
+            Principal principal
+    ) {
+
+        String currentEmail = principal.getName();
+
+        UserUpdateResponseDTO responseDTO =
+                userService.updateUser(currentEmail, requestDTO);
+
+        return ResponseEntity.ok(responseDTO);
     }
 
 
