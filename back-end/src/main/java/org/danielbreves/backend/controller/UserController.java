@@ -63,5 +63,18 @@ public class UserController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<UserDeleteResponseDTO> deleteUser(
+            @RequestBody @Valid UserDeleteRequestDTO requestDTO,
+            Principal principal
+    ) {
+        String currentEmail = principal.getName();
+
+        UserDeleteResponseDTO responseDTO =
+                userService.deleteUser(currentEmail, requestDTO);
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
 
 }

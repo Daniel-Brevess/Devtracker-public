@@ -10,10 +10,13 @@ import {
   Terminal,
   CreditCard,
   UserCircle2,
+  Lock,
+  X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
+import api from "../../services/api";
 import { logout } from "../../services/tokenService";
 import { getCurrentUser, getUserInitials } from "../../services/userService";
 
@@ -28,6 +31,11 @@ export default function Dashboard2() {
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
   const [isSettingsCardOpen, setIsSettingsCardOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
+    useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteAccountMessage, setDeleteAccountMessage] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const profileCardRef = useRef(null);
   const settingsCardRef = useRef(null);
 
@@ -59,6 +67,53 @@ export default function Dashboard2() {
   function handleLogout() {
     logout();
     navigate("/login");
+  }
+
+  function openDeleteAccountModal() {
+    setDeletePassword("");
+    setDeleteAccountMessage("");
+    setIsSettingsCardOpen(false);
+    setIsAccountOpen(false);
+    setIsDeleteAccountModalOpen(true);
+  }
+
+  function closeDeleteAccountModal() {
+    if (isDeletingAccount) return;
+
+    setDeletePassword("");
+    setDeleteAccountMessage("");
+    setIsDeleteAccountModalOpen(false);
+  }
+
+  async function handleDeleteAccount(event) {
+    event.preventDefault();
+
+    setDeleteAccountMessage("");
+
+    if (!deletePassword) {
+      setDeleteAccountMessage("Insert your current password.");
+      return;
+    }
+
+    setIsDeletingAccount(true);
+
+    try {
+      await api.delete("/user/delete", {
+        data: {
+          password: deletePassword,
+        },
+      });
+
+      logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      setDeleteAccountMessage(
+        error.response?.data?.message ||
+          "The password is not correct. Account could not be deleted."
+      );
+    } finally {
+      setIsDeletingAccount(false);
+    }
   }
 
   const menuItems = [
@@ -139,7 +194,11 @@ export default function Dashboard2() {
           Edit profile
         </Link>
 
-            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-zinc-500 transition-all hover:bg-red-500/10 hover:text-red-400">
+            <button
+              type="button"
+              onClick={openDeleteAccountModal}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-zinc-500 transition-all hover:bg-red-500/10 hover:text-red-400"
+            >
               <span className="font-mono text-red-400">{">"}</span>
               Delete account
             </button>
@@ -187,6 +246,78 @@ export default function Dashboard2() {
   })}
 </nav>
       </aside>
+
+      {isDeleteAccountModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-zinc-950 p-6 shadow-2xl shadow-black/50">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Delete account
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                  Enter your current password to permanently delete your
+                  account.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeDeleteAccountModal}
+                disabled={isDeletingAccount}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400 transition hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleDeleteAccount} className="mt-6 space-y-5">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm text-zinc-400">
+                  <Lock className="h-3 w-3" />
+                  Current Password
+                </label>
+
+                <input
+                  name="deletePassword"
+                  type="password"
+                  value={deletePassword}
+                  onChange={(event) => {
+                    setDeletePassword(event.target.value);
+                    setDeleteAccountMessage("");
+                  }}
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-red-500/50"
+                />
+              </div>
+
+              {deleteAccountMessage && (
+                <span className="block text-sm text-red-400">
+                  {deleteAccountMessage}
+                </span>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeDeleteAccountModal}
+                  disabled={isDeletingAccount}
+                  className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white transition-all hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isDeletingAccount}
+                  className="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isDeletingAccount ? "Deleting..." : "Delete account"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Main */}
       <main className="relative z-10 ml-64 flex flex-1 flex-col">

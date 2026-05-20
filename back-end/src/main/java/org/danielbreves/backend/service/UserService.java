@@ -122,4 +122,26 @@ public class UserService {
 
         return new UserPasswordUpdateResponseDTO("Password updated successfully");
     }
+
+    public UserDeleteResponseDTO deleteUser(
+            String currentEmail,
+            UserDeleteRequestDTO requestDTO
+    ) {
+
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean passwordMatches = passwordEncoder.matches(
+                requestDTO.password(),
+                user.getPassword()
+        );
+
+        if (!passwordMatches) {
+            throw new RuntimeException("Password is invalid");
+        }
+
+        userRepository.delete(user);
+
+        return new UserDeleteResponseDTO("Account deleted successfully");
+    }
 }
