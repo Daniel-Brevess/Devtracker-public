@@ -50,5 +50,18 @@ public class UserController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @PutMapping("/update-password")
+    public ResponseEntity<UserPasswordUpdateResponseDTO> updatePassword(
+            @RequestBody @Valid UserPasswordUpdateRequestDTO requestDTO,
+            Principal principal
+    ) {
+        String currentEmail = principal.getName();
+
+        UserPasswordUpdateResponseDTO responseDTO =
+                userService.updatePassword(currentEmail, requestDTO);
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
 
 }

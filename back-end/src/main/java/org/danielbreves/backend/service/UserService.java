@@ -99,4 +99,27 @@ public class UserService {
                 updatedUser.getEmail()
         );
     }
+
+    public UserPasswordUpdateResponseDTO updatePassword(
+            String currentEmail,
+            UserPasswordUpdateRequestDTO requestDTO
+    ) {
+
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean passwordMatches = passwordEncoder.matches(
+                requestDTO.currentPassword(),
+                user.getPassword()
+        );
+
+        if (!passwordMatches) {
+            throw new RuntimeException("Current password is invalid");
+        }
+
+        user.setPassword(passwordEncoder.encode(requestDTO.newPassword()));
+        userRepository.save(user);
+
+        return new UserPasswordUpdateResponseDTO("Password updated successfully");
     }
+}

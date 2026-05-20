@@ -15,6 +15,7 @@ import api from "../../services/api";
 import { saveUser } from "../../services/tokenService";
 import { logout } from "../../services/tokenService";
 import { useNavigate } from "react-router-dom";
+import { validatePassword } from "../../utils/validator";
 
 export default function ProfileEdit22() {
   const user = getCurrentUser();
@@ -35,6 +36,7 @@ export default function ProfileEdit22() {
   });
 
   const [isPasswordCardOpen, setIsPasswordCardOpen] = useState(false);
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
 
@@ -113,7 +115,7 @@ async function handleSubmit(event) {
   }
 }
 
-  function handlePasswordSubmit(event) {
+  async function handlePasswordSubmit(event) {
     event.preventDefault();
 
     if (!passwordData.currentPassword) {
@@ -126,17 +128,52 @@ async function handleSubmit(event) {
       return;
     }
 
+    const passwordErrors = validatePassword(passwordData.newPassword);
+
+    if (passwordErrors.length > 0) {
+      setPasswordMessage(
+        "The password needs to have: " + passwordErrors.join(", ") + "."
+      );
+      return;
+    }
+
+    if (!passwordData.confirmPassword) {
+      setPasswordMessage("Confirm your new password.");
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordMessage("New password and confirmation do not match.");
       return;
     }
 
-    console.log("Dados de senha para atualizar:", {
+    const payload = {
       currentPassword: passwordData.currentPassword,
       newPassword: passwordData.newPassword,
-    });
+    };
 
-    setPasswordMessage("Password update is not connected to the backend yet.");
+    setIsPasswordLoading(true);
+
+    try {
+      const response = await api.put("/user/update-password", payload);
+
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      setPasswordMessage(
+        response.data?.message || "Password updated successfully."
+      );
+    } catch (error) {
+      setPasswordMessage(
+        error.response?.data?.message ||
+          "Could not update password. Try again."
+      );
+    } finally {
+      setIsPasswordLoading(false);
+    }
   }
 
   return (
@@ -344,9 +381,10 @@ async function handleSubmit(event) {
               <div className="flex justify-end">
                 <button
                   type="submit"
+                  disabled={isPasswordLoading}
                   className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-black transition-all hover:scale-[1.02]"
                 >
-                  Update Password
+                  {isPasswordLoading ? "Updating..." : "Update Password"}
                 </button>
               </div>
             </form>
