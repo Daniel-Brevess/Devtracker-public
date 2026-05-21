@@ -7,7 +7,6 @@ import {
   Settings,
   LogOut,
   Bell,
-  Terminal,
   CreditCard,
   UserCircle2,
   Lock,
@@ -22,6 +21,10 @@ import { getCurrentUser, getUserInitials } from "../../services/userService";
 import { getApiErrorMessage } from "../../utils/apiError";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
+import GoalsSection from "./sections/GoalsSection";
+import OverviewSection from "./sections/OverviewSection";
+import SessionsSection from "./sections/SessionsSection";
+import TasksSection from "./sections/TasksSection";
 
 export default function Dashboard2() {
   const navigate = useNavigate();
@@ -34,6 +37,7 @@ export default function Dashboard2() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
     useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteAccountMessage, setDeleteAccountMessage] = useState("");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -120,12 +124,19 @@ export default function Dashboard2() {
   }
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Overview", active: true },
-    { icon: ListChecks, label: "Tasks", active: false },
-    { icon: Target, label: "Goals", active: false },
-    { icon: Timer, label: "Sessions", active: false },
-    { icon: Settings, label: "Settings", active: false },
+    { icon: LayoutDashboard, id: "overview", label: "Overview" },
+    { icon: ListChecks, id: "tasks", label: "Tasks" },
+    { icon: Target, id: "goals", label: "Goals" },
+    { icon: Timer, id: "sessions", label: "Sessions" },
+    { icon: Settings, id: "settings", label: "Settings" },
   ];
+
+  const sectionById = {
+    overview: <OverviewSection />,
+    tasks: <TasksSection />,
+    goals: <GoalsSection />,
+    sessions: <SessionsSection />,
+  };
 
   return (
     <div className="flex min-h-screen bg-black text-white">
@@ -157,7 +168,7 @@ export default function Dashboard2() {
   {menuItems.map((item) => {
     const Icon = item.icon;
 
-    if (item.label === "Settings") {
+    if (item.id === "settings") {
       return (
         <div ref={settingsCardRef} key={item.label}>
           <button
@@ -236,8 +247,14 @@ export default function Dashboard2() {
     return (
       <button
         key={item.label}
+        type="button"
+        onClick={() => {
+          setActiveSection(item.id);
+          setIsSettingsCardOpen(false);
+          setIsAccountOpen(false);
+        }}
         className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-          item.active
+          activeSection === item.id
             ? "border border-white/10 bg-white/10 text-white"
             : "text-zinc-500 hover:bg-white/5 hover:text-white"
         }`}
@@ -378,22 +395,7 @@ export default function Dashboard2() {
           </div>
         </header>
 
-        {/* Empty Center */}
-        <section className="flex flex-1 items-center justify-center">
-          <div className="flex flex-col items-center text-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-white/10 bg-zinc-950/70 text-blue-400 backdrop-blur-sm">
-              <Terminal className="h-12 w-12" />
-            </div>
-
-            <h1 className="mt-6 text-2xl font-semibold">
-              DevTracker Workspace
-            </h1>
-
-            <p className="mt-2 max-w-sm text-sm text-zinc-500">
-              Dashboard base ready to receive the next MVP features.
-            </p>
-          </div>
-        </section>
+        {sectionById[activeSection]}
       </main>
     </div>
   );
