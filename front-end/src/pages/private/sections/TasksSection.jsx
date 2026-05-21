@@ -3,6 +3,7 @@ import {
   CalendarDays,
   CheckCircle2,
   Circle,
+  Pencil,
   Plus,
   Search,
   X,
@@ -11,6 +12,7 @@ import {
 import {
   createFocus,
   getAllFocuses,
+  updateFocus,
 } from "../../../services/focus/focusService";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
@@ -31,6 +33,10 @@ export default function TasksSection() {
   const [isCreatingFocus, setIsCreatingFocus] = useState(false);
   const [isLoadingFocuses, setIsLoadingFocuses] = useState(true);
   const [focusesMessage, setFocusesMessage] = useState("");
+  const [focusBeingEdited, setFocusBeingEdited] = useState(null);
+  const [editFocusTitle, setEditFocusTitle] = useState("");
+  const [editFocusMessage, setEditFocusMessage] = useState("");
+  const [isUpdatingFocus, setIsUpdatingFocus] = useState(false);
 
   useEffect(() => {
     async function loadFocuses() {
@@ -77,6 +83,20 @@ export default function TasksSection() {
     setIsCreateFocusModalOpen(false);
   }
 
+  function openEditFocusModal(focusGroup) {
+    setFocusBeingEdited(focusGroup);
+    setEditFocusTitle(focusGroup.title);
+    setEditFocusMessage("");
+  }
+
+  function closeEditFocusModal() {
+    if (isUpdatingFocus) return;
+
+    setFocusBeingEdited(null);
+    setEditFocusTitle("");
+    setEditFocusMessage("");
+  }
+
   async function handleCreateFocus(event) {
     event.preventDefault();
 
@@ -106,6 +126,49 @@ export default function TasksSection() {
       );
     } finally {
       setIsCreatingFocus(false);
+    }
+  }
+
+  async function handleUpdateFocus(event) {
+    event.preventDefault();
+
+    const trimmedTitle = editFocusTitle.trim();
+    setEditFocusMessage("");
+
+    if (!trimmedTitle) {
+      setEditFocusMessage("Add a title for this focus.");
+      return;
+    }
+
+    setIsUpdatingFocus(true);
+
+    try {
+      const updatedFocus = await updateFocus({
+        id: focusBeingEdited.id,
+        title: trimmedTitle,
+      });
+
+      setFocusGroups((currentGroups) =>
+        currentGroups.map((group) =>
+          group.id === updatedFocus.id
+            ? {
+                ...group,
+                title: updatedFocus.title,
+                createdAt: updatedFocus.createdAt,
+              }
+            : group
+        )
+      );
+
+      setFocusBeingEdited(null);
+      setEditFocusTitle("");
+      setEditFocusMessage("");
+    } catch (error) {
+      setEditFocusMessage(
+        getApiErrorMessage(error, "Could not update focus. Try again.")
+      );
+    } finally {
+      setIsUpdatingFocus(false);
     }
   }
 
@@ -209,12 +272,23 @@ export default function TasksSection() {
               key={group.id}
               className="rounded-3xl border border-white/10 bg-zinc-950/50 p-5 backdrop-blur-sm"
             >
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="min-w-0 truncate text-sm font-semibold uppercase tracking-wider text-zinc-500">
                   {group.title}
                 </h2>
 
-                <CalendarDays className="h-4 w-4 text-blue-400" />
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openEditFocusModal(group)}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-500 transition hover:border-blue-400/40 hover:text-blue-400"
+                    aria-label={`Edit ${group.title} focus`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+
+                  <CalendarDays className="h-4 w-4 text-blue-400" />
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -337,6 +411,75 @@ export default function TasksSection() {
                   className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-black transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isCreatingFocus ? "Creating..." : "Create focus"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {focusBeingEdited && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-zinc-950 p-6 shadow-2xl shadow-black/50">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Edit focus
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                  Update only the focus title.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeEditFocusModal}
+                disabled={isUpdatingFocus}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400 transition hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateFocus} className="mt-6 space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm text-zinc-400">Focus title</label>
+
+                <input
+                  name="editFocusTitle"
+                  type="text"
+                  value={editFocusTitle}
+                  onChange={(event) => {
+                    setEditFocusTitle(event.target.value);
+                    setEditFocusMessage("");
+                  }}
+                  maxLength={255}
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-blue-500/50"
+                />
+              </div>
+
+              {editFocusMessage && (
+                <span className="block text-sm text-red-400">
+                  {editFocusMessage}
+                </span>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeEditFocusModal}
+                  disabled={isUpdatingFocus}
+                  className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white transition-all hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isUpdatingFocus}
+                  className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-black transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isUpdatingFocus ? "Saving..." : "Save focus"}
                 </button>
               </div>
             </form>

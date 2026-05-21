@@ -3,6 +3,8 @@ package org.danielbreves.backend.service;
 import org.danielbreves.backend.dto.focus.CreateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.CreateFocusResponseDTO;
 import org.danielbreves.backend.dto.focus.FocusResponseDTO;
+import org.danielbreves.backend.dto.focus.UpdateFocusRequestDTO;
+import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
 import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.repository.FocusRepository;
@@ -59,5 +61,27 @@ public class FocusService {
                         focus.getCreatedAt()
                 ))
                 .toList();
+    }
+
+    public UpdateFocusResponseDTO updateFocus(
+            String currentEmail,
+            UpdateFocusRequestDTO requestDTO
+    ) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Focus focus = focusRepository.findByIdAndUser(requestDTO.id(), user)
+                .orElseThrow(() -> new RuntimeException("Focus not found"));
+
+        focus.setTitle(requestDTO.title());
+
+        Focus updatedFocus = focusRepository.save(focus);
+
+        return new UpdateFocusResponseDTO(
+                updatedFocus.getId(),
+                updatedFocus.getUser().getId(),
+                updatedFocus.getTitle(),
+                updatedFocus.getCreatedAt()
+        );
     }
 }

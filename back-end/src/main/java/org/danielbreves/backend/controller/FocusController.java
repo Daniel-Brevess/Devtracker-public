@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import org.danielbreves.backend.dto.focus.CreateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.CreateFocusResponseDTO;
 import org.danielbreves.backend.dto.focus.FocusResponseDTO;
+import org.danielbreves.backend.dto.focus.UpdateFocusRequestDTO;
+import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
 import org.danielbreves.backend.service.FocusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,6 +49,17 @@ public class FocusController {
     ) {
         List<FocusResponseDTO> responseDTO =
                 focusService.getAllFocuses(principal.getName());
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<UpdateFocusResponseDTO> updateFocus(
+            @RequestBody @Valid UpdateFocusRequestDTO requestDTO,
+            Principal principal
+    ) {
+        UpdateFocusResponseDTO responseDTO =
+                focusService.updateFocus(principal.getName(), requestDTO);
 
         return ResponseEntity.ok(responseDTO);
     }

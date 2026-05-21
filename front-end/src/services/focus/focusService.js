@@ -13,3 +13,12 @@ export async function getAllFocuses() {
 
   return response.data;
 }
+
+export async function updateFocus({ id, title }) {
+  const response = await api.put("/focus/update", {
+    id,
+    title: title.trim(),
+  });
+
+  return response.data;
+}
