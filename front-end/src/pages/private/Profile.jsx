@@ -11,7 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { getCurrentUser, getUserInitials } from "../../services/userService";
+import { getCurrentUser, getUserInitials } from "../../services/user/userService";
 
 function GitHubIcon() {
   return (

@@ -17,7 +17,7 @@ import { Link } from "react-router-dom";
 
 import api from "../../services/api";
 import { logout } from "../../services/tokenService";
-import { getCurrentUser, getUserInitials } from "../../services/userService";
+import { getCurrentUser, getUserInitials } from "../../services/user/userService";
 import { getApiErrorMessage } from "../../utils/apiError";
 
 import DevLogo from "../../assets/DevLogoBranco.png";

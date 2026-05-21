@@ -10,7 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { getCurrentUser, getUserInitials } from "../../services/userService";
+import { getCurrentUser, getUserInitials } from "../../services/user/userService";
 import api from "../../services/api";
 import { saveUser } from "../../services/tokenService";
 import { logout } from "../../services/tokenService";
