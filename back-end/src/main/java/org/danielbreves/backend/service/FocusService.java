@@ -2,6 +2,8 @@ package org.danielbreves.backend.service;
 
 import org.danielbreves.backend.dto.focus.CreateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.CreateFocusResponseDTO;
+import org.danielbreves.backend.dto.focus.DeleteFocusRequestDTO;
+import org.danielbreves.backend.dto.focus.DeleteFocusResponseDTO;
 import org.danielbreves.backend.dto.focus.FocusResponseDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
@@ -83,5 +85,20 @@ public class FocusService {
                 updatedFocus.getTitle(),
                 updatedFocus.getCreatedAt()
         );
+    }
+
+    public DeleteFocusResponseDTO deleteFocus(
+            String currentEmail,
+            DeleteFocusRequestDTO requestDTO
+    ) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Focus focus = focusRepository.findByIdAndUser(requestDTO.id(), user)
+                .orElseThrow(() -> new RuntimeException("Focus not found"));
+
+        focusRepository.delete(focus);
+
+        return new DeleteFocusResponseDTO("Focus deleted successfully");
     }
 }

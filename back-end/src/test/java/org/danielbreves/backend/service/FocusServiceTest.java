@@ -2,6 +2,8 @@ package org.danielbreves.backend.service;
 
 import org.danielbreves.backend.dto.focus.CreateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.CreateFocusResponseDTO;
+import org.danielbreves.backend.dto.focus.DeleteFocusRequestDTO;
+import org.danielbreves.backend.dto.focus.DeleteFocusResponseDTO;
 import org.danielbreves.backend.dto.focus.FocusResponseDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
@@ -102,5 +104,29 @@ class FocusServiceTest {
         assertEquals(1L, responseDTO.idUser());
         assertEquals("Updated study", responseDTO.title());
         assertEquals(createdAt, responseDTO.createdAt());
+    }
+
+    @Test
+    void deleteFocusFindsFocusByIdAndCurrentUserBeforeDeleting() {
+        FocusRepository focusRepository = mock(FocusRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        FocusService focusService = new FocusService(focusRepository, userRepository);
+
+        String currentEmail = "user@test.com";
+        User user = new User(1L, "User", "username", "password", currentEmail, null);
+        LocalDateTime createdAt = LocalDateTime.now();
+        Focus focus = new Focus(10L, user, "Study", createdAt);
+        DeleteFocusRequestDTO requestDTO = new DeleteFocusRequestDTO(10L);
+
+        when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
+        when(focusRepository.findByIdAndUser(10L, user)).thenReturn(Optional.of(focus));
+
+        DeleteFocusResponseDTO responseDTO =
+                focusService.deleteFocus(currentEmail, requestDTO);
+
+        verify(userRepository).findByEmail(currentEmail);
+        verify(focusRepository).findByIdAndUser(10L, user);
+        verify(focusRepository).delete(focus);
+        assertEquals("Focus deleted successfully", responseDTO.message());
     }
 }

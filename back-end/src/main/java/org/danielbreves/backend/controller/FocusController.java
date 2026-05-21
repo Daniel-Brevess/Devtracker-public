@@ -3,6 +3,8 @@ package org.danielbreves.backend.controller;
 import jakarta.validation.Valid;
 import org.danielbreves.backend.dto.focus.CreateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.CreateFocusResponseDTO;
+import org.danielbreves.backend.dto.focus.DeleteFocusRequestDTO;
+import org.danielbreves.backend.dto.focus.DeleteFocusResponseDTO;
 import org.danielbreves.backend.dto.focus.FocusResponseDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -60,6 +63,17 @@ public class FocusController {
     ) {
         UpdateFocusResponseDTO responseDTO =
                 focusService.updateFocus(principal.getName(), requestDTO);
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<DeleteFocusResponseDTO> deleteFocus(
+            @RequestBody @Valid DeleteFocusRequestDTO requestDTO,
+            Principal principal
+    ) {
+        DeleteFocusResponseDTO responseDTO =
+                focusService.deleteFocus(principal.getName(), requestDTO);
 
         return ResponseEntity.ok(responseDTO);
     }

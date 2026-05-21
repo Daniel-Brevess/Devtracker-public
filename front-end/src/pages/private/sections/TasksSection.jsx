@@ -6,11 +6,13 @@ import {
   Pencil,
   Plus,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 
 import {
   createFocus,
+  deleteFocus,
   getAllFocuses,
   updateFocus,
 } from "../../../services/focus/focusService";
@@ -37,6 +39,9 @@ export default function TasksSection() {
   const [editFocusTitle, setEditFocusTitle] = useState("");
   const [editFocusMessage, setEditFocusMessage] = useState("");
   const [isUpdatingFocus, setIsUpdatingFocus] = useState(false);
+  const [focusBeingDeleted, setFocusBeingDeleted] = useState(null);
+  const [deleteFocusMessage, setDeleteFocusMessage] = useState("");
+  const [isDeletingFocus, setIsDeletingFocus] = useState(false);
 
   useEffect(() => {
     async function loadFocuses() {
@@ -95,6 +100,18 @@ export default function TasksSection() {
     setFocusBeingEdited(null);
     setEditFocusTitle("");
     setEditFocusMessage("");
+  }
+
+  function openDeleteFocusModal(focusGroup) {
+    setFocusBeingDeleted(focusGroup);
+    setDeleteFocusMessage("");
+  }
+
+  function closeDeleteFocusModal() {
+    if (isDeletingFocus) return;
+
+    setFocusBeingDeleted(null);
+    setDeleteFocusMessage("");
   }
 
   async function handleCreateFocus(event) {
@@ -169,6 +186,28 @@ export default function TasksSection() {
       );
     } finally {
       setIsUpdatingFocus(false);
+    }
+  }
+
+  async function handleDeleteFocus() {
+    setDeleteFocusMessage("");
+    setIsDeletingFocus(true);
+
+    try {
+      await deleteFocus({ id: focusBeingDeleted.id });
+
+      setFocusGroups((currentGroups) =>
+        currentGroups.filter((group) => group.id !== focusBeingDeleted.id)
+      );
+
+      setFocusBeingDeleted(null);
+      setDeleteFocusMessage("");
+    } catch (error) {
+      setDeleteFocusMessage(
+        getApiErrorMessage(error, "Could not delete focus. Try again.")
+      );
+    } finally {
+      setIsDeletingFocus(false);
     }
   }
 
@@ -285,6 +324,15 @@ export default function TasksSection() {
                     aria-label={`Edit ${group.title} focus`}
                   >
                     <Pencil className="h-3.5 w-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => openDeleteFocusModal(group)}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-500 transition hover:border-red-400/40 hover:text-red-400"
+                    aria-label={`Delete ${group.title} focus`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
 
                   <CalendarDays className="h-4 w-4 text-blue-400" />
@@ -483,6 +531,67 @@ export default function TasksSection() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {focusBeingDeleted && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-zinc-950 p-6 shadow-2xl shadow-black/50">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Delete focus
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                  This will remove the focus from your dashboard.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeDeleteFocusModal}
+                disabled={isDeletingFocus}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400 transition hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-white/5 bg-black/40 p-4">
+              <p className="text-sm font-medium text-white">
+                {focusBeingDeleted.title}
+              </p>
+              <span className="mt-1 block text-xs text-zinc-600">
+                Confirm that you want to delete this focus.
+              </span>
+            </div>
+
+            {deleteFocusMessage && (
+              <span className="mt-4 block text-sm text-red-400">
+                {deleteFocusMessage}
+              </span>
+            )}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeDeleteFocusModal}
+                disabled={isDeletingFocus}
+                className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white transition-all hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDeleteFocus}
+                disabled={isDeletingFocus}
+                className="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDeletingFocus ? "Deleting..." : "Delete focus"}
+              </button>
+            </div>
           </div>
         </div>
       )}

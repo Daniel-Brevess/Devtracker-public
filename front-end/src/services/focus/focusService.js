@@ -22,3 +22,13 @@ export async function updateFocus({ id, title }) {
 
   return response.data;
 }
+
+export async function deleteFocus({ id }) {
+  const response = await api.delete("/focus/delete", {
+    data: {
+      id,
+    },
+  });
+
+  return response.data;
+}
