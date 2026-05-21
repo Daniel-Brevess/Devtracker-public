@@ -7,3 +7,9 @@ export async function createFocus({ title }) {
 
   return response.data;
 }
+
+export async function getAllFocuses() {
+  const response = await api.get("/focus/all");
+
+  return response.data;
+}

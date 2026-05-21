@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
@@ -8,53 +8,50 @@ import {
   X,
 } from "lucide-react";
 
-import { createFocus } from "../../../services/focus/focusService";
+import {
+  createFocus,
+  getAllFocuses,
+} from "../../../services/focus/focusService";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
-const initialFocusGroups = [
-  {
-    title: "Today",
-    tasks: [
-      {
-        title: "Review authentication flow",
-        meta: "Security",
-        done: true,
-      },
-      {
-        title: "Create first task model",
-        meta: "Back-end",
-        done: false,
-      },
-      {
-        title: "Draft task dashboard layout",
-        meta: "Front-end",
-        done: false,
-      },
-    ],
-  },
-  {
-    title: "Next",
-    tasks: [
-      {
-        title: "Connect tasks with authenticated user",
-        meta: "API",
-        done: false,
-      },
-      {
-        title: "Add status and priority filters",
-        meta: "Product",
-        done: false,
-      },
-    ],
-  },
-];
+function mapFocusToGroup(focus) {
+  return {
+    id: focus.id,
+    title: focus.title,
+    createdAt: focus.createdAt,
+    tasks: [],
+  };
+}
 
 export default function TasksSection() {
-  const [focusGroups, setFocusGroups] = useState(initialFocusGroups);
+  const [focusGroups, setFocusGroups] = useState([]);
   const [isCreateFocusModalOpen, setIsCreateFocusModalOpen] = useState(false);
   const [focusTitle, setFocusTitle] = useState("");
   const [createFocusMessage, setCreateFocusMessage] = useState("");
   const [isCreatingFocus, setIsCreatingFocus] = useState(false);
+  const [isLoadingFocuses, setIsLoadingFocuses] = useState(true);
+  const [focusesMessage, setFocusesMessage] = useState("");
+
+  useEffect(() => {
+    async function loadFocuses() {
+      setIsLoadingFocuses(true);
+      setFocusesMessage("");
+
+      try {
+        const focuses = await getAllFocuses();
+
+        setFocusGroups(focuses.map(mapFocusToGroup));
+      } catch (error) {
+        setFocusesMessage(
+          getApiErrorMessage(error, "Could not load focuses. Try again.")
+        );
+      } finally {
+        setIsLoadingFocuses(false);
+      }
+    }
+
+    loadFocuses();
+  }, []);
 
   const taskSummary = useMemo(() => {
     const tasks = focusGroups.flatMap((group) => group.tasks);
@@ -97,10 +94,7 @@ export default function TasksSection() {
       const createdFocus = await createFocus({ title: trimmedTitle });
 
       setFocusGroups((currentGroups) => [
-        {
-          title: createdFocus.title,
-          tasks: [],
-        },
+        mapFocusToGroup(createdFocus),
         ...currentGroups,
       ]);
 
@@ -180,9 +174,39 @@ export default function TasksSection() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {isLoadingFocuses && (
+            <div className="rounded-3xl border border-white/10 bg-zinc-950/50 p-5 backdrop-blur-sm lg:col-span-2">
+              <p className="text-sm font-medium text-white">
+                Loading focuses...
+              </p>
+              <span className="mt-1 block text-xs text-zinc-600">
+                Your focus cards will appear here.
+              </span>
+            </div>
+          )}
+
+          {!isLoadingFocuses && focusesMessage && (
+            <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-5 backdrop-blur-sm lg:col-span-2">
+              <p className="text-sm font-medium text-red-300">
+                {focusesMessage}
+              </p>
+            </div>
+          )}
+
+          {!isLoadingFocuses && !focusesMessage && focusGroups.length === 0 && (
+            <div className="rounded-3xl border border-white/10 bg-zinc-950/50 p-5 backdrop-blur-sm lg:col-span-2">
+              <p className="text-sm font-medium text-white">
+                No focuses yet.
+              </p>
+              <span className="mt-1 block text-xs text-zinc-600">
+                Create your first focus to organize tasks around it.
+              </span>
+            </div>
+          )}
+
           {focusGroups.map((group) => (
             <div
-              key={group.title}
+              key={group.id}
               className="rounded-3xl border border-white/10 bg-zinc-950/50 p-5 backdrop-blur-sm"
             >
               <div className="mb-4 flex items-center justify-between">
@@ -195,14 +219,23 @@ export default function TasksSection() {
 
               <div className="space-y-3">
                 {group.tasks.length === 0 && (
-                  <div className="rounded-2xl border border-white/5 bg-black/40 p-4">
-                    <p className="text-sm font-medium text-white">
-                      No tasks in this focus yet.
-                    </p>
-                    <span className="mt-1 block text-xs text-zinc-600">
-                      Tasks added to this focus will appear here.
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-white/10 bg-black/40 p-4 text-left transition hover:border-blue-400/40 hover:bg-blue-500/5"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-blue-400">
+                      <Plus className="h-4 w-4" />
                     </span>
-                  </div>
+
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-white">
+                        Add tasks to this focus
+                      </span>
+                      <span className="mt-1 block text-xs text-zinc-600">
+                        Start filling this focus with the work you want to do.
+                      </span>
+                    </span>
+                  </button>
                 )}
 
                 {group.tasks.map((task) => {
