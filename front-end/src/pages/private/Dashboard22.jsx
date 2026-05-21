@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { logout } from "../../services/tokenService";
 import { getCurrentUser, getUserInitials } from "../../services/userService";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
 
@@ -108,8 +109,10 @@ export default function Dashboard2() {
       navigate("/login", { replace: true });
     } catch (error) {
       setDeleteAccountMessage(
-        error.response?.data?.message ||
+        getApiErrorMessage(
+          error,
           "The password is not correct. Account could not be deleted."
+        )
       );
     } finally {
       setIsDeletingAccount(false);

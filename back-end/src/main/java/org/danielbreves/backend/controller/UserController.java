@@ -31,7 +31,7 @@ public class UserController {
 
     @PostMapping("/login")
     public LoginResponseDTO loginUser(
-            @RequestBody LoginRequestDTO request
+            @RequestBody @Valid LoginRequestDTO request
     ) {
         return userService.loginUser(request);
     }

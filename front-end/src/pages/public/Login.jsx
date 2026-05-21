@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import DevLogo from "../../assets/DevLogoBranco.png";
 import api from "../../services/api";
 import { saveToken, saveUser } from "../../services/tokenService";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -97,11 +98,7 @@ export default function Login() {
 
       navigate("/dashboard22");
     } catch (error) {
-      setSubmitError(
-        error.response?.data?.message ||
-          error.message ||
-          "Email ou senha inválidos."
-      );
+      setSubmitError(getApiErrorMessage(error, "Email ou senha inválidos."));
     } finally {
       setIsLoading(false);
     }

@@ -16,6 +16,7 @@ import { saveUser } from "../../services/tokenService";
 import { logout } from "../../services/tokenService";
 import { useNavigate } from "react-router-dom";
 import { validatePassword } from "../../utils/validator";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 export default function ProfileEdit22() {
   const user = getCurrentUser();
@@ -82,7 +83,6 @@ async function handleSubmit(event) {
     const response = await api.put("/user/update", payload);
 
     const updatedUser = response.data;
-    console.log("UPDATE RESPONSE:", updatedUser);
 
     const userToSave = {
       ...user,
@@ -92,8 +92,6 @@ async function handleSubmit(event) {
     };
 
     saveUser(userToSave);
-
-    console.log("USER SAVED:", userToSave);
 
     if (emailChanged) {
       setProfileMessage("Email updated successfully. Please login again.");
@@ -109,8 +107,7 @@ async function handleSubmit(event) {
     setProfileMessage("Profile updated successfully.");
   } catch (error) {
     setProfileMessage(
-      error.response?.data?.message ||
-        "Could not update profile. Try again."
+      getApiErrorMessage(error, "Could not update profile. Try again.")
     );
   }
 }
@@ -168,8 +165,7 @@ async function handleSubmit(event) {
       );
     } catch (error) {
       setPasswordMessage(
-        error.response?.data?.message ||
-          "Could not update password. Try again."
+        getApiErrorMessage(error, "Could not update password. Try again.")
       );
     } finally {
       setIsPasswordLoading(false);

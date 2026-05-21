@@ -10,6 +10,7 @@ import {
   validatePassword,
   isValidUsername,
 } from "../../utils/validator";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -106,7 +107,9 @@ export default function Register() {
         navigate("/login");
       }, 1200);
     } catch (error) {
-      setSubmitError(error.message);
+      setSubmitError(
+        getApiErrorMessage(error, "Could not create account. Try again.")
+      );
     } finally {
       setIsLoading(false);
     }

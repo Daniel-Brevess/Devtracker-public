@@ -46,28 +46,16 @@ public class UserService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new RuntimeException("Email ou senha inválidos"));
 
-        System.out.println("Email recebido: [" + request.email() + "]");
-        System.out.println("Senha recebida: [" + request.password() + "]");
-        System.out.println("Senha banco: [" + user.getPassword() + "]");
-        System.out.println("Tamanho hash: " + user.getPassword().length());
-
-        System.out.println(
-                "Teste fixo: " + passwordEncoder.matches("SUA_SENHA_AQUI", user.getPassword())
-        );
-
         boolean passwordMatches = passwordEncoder.matches(
                 request.password(),
                 user.getPassword()
         );
-
-        System.out.println("Senha bateu pelo request? " + passwordMatches);
 
         if (!passwordMatches) {
             throw new RuntimeException("Email ou senha inválidos");
         }
 
         String token = jwtService.generateToken(user.getEmail());
-        System.out.println("Token gerado: " + token);
 
         return new LoginResponseDTO(
                 user.getId(),

@@ -29,25 +29,9 @@ export function validatePassword(password) {
     errors.push("1 number");
   }
 
-  if (!/[@$!%*?&.#_\-]/.test(password)) {
+  if (!/[@$!%*?&.#_-]/.test(password)) {
     errors.push("1 symbol");
   }
 
   return errors;
-}
-
-function validateLogin() {
-  const newErrors = {};
-
-  if (!formData.identifier.trim()) {
-    newErrors.identifier = "Digite seu username ou email.";
-  }
-
-  if (!formData.password) {
-    newErrors.password = "Digite sua senha.";
-  }
-
-  setErrors(newErrors);
-
-  return Object.keys(newErrors).length === 0;
 }
