@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard,
-  BarChart3,
+  ListChecks,
   Target,
-  Flame,
+  Timer,
   Settings,
   LogOut,
   Bell,
@@ -121,9 +121,9 @@ export default function Dashboard2() {
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Overview", active: true },
-    { icon: BarChart3, label: "Analytics", active: false },
+    { icon: ListChecks, label: "Tasks", active: false },
     { icon: Target, label: "Goals", active: false },
-    { icon: Flame, label: "Streaks", active: false },
+    { icon: Timer, label: "Sessions", active: false },
     { icon: Settings, label: "Settings", active: false },
   ];
 
