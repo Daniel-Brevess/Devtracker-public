@@ -340,9 +340,9 @@ export default function Dashboard2() {
       )}
 
       {/* Main */}
-      <main className="relative z-10 ml-64 flex flex-1 flex-col">
+      <main className="relative z-10 ml-64 flex h-screen flex-1 flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="flex h-20 items-center justify-end border-b border-white/10 bg-black/20 px-8 backdrop-blur-md">
+        <header className="sticky top-0 z-40 flex h-20 shrink-0 items-center justify-end border-b border-white/10 bg-black/10 px-8 backdrop-blur-md">
           <div className="flex items-center gap-4">
             <button className="relative rounded-xl border border-white/10 bg-white/5 p-2 text-zinc-400 transition-all hover:text-white">
               <Bell className="h-5 w-5" />
