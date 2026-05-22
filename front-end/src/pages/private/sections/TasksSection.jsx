@@ -19,6 +19,7 @@ import {
 } from "../../../services/focus/focusService";
 import {
   createTask,
+  deleteTask,
   getTasksByFocus,
   updateTask,
 } from "../../../services/task/taskService";
@@ -104,6 +105,9 @@ export default function TasksSection() {
     useState(false);
   const [editTaskMessage, setEditTaskMessage] = useState("");
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  const [taskBeingDeleted, setTaskBeingDeleted] = useState(null);
+  const [deleteTaskMessage, setDeleteTaskMessage] = useState("");
+  const [isDeletingTask, setIsDeletingTask] = useState(false);
 
   useEffect(() => {
     async function loadFocuses() {
@@ -135,7 +139,7 @@ export default function TasksSection() {
 
   useEffect(() => {
     function handleClickOutsideSelectedTask(event) {
-      if (isUpdatingTask || !selectedTaskId) return;
+      if (isUpdatingTask || isDeletingTask || !selectedTaskId) return;
 
       if (
         selectedTaskRef.current &&
@@ -143,7 +147,9 @@ export default function TasksSection() {
       ) {
         setSelectedTaskId(null);
         setTaskBeingEdited(null);
+        setTaskBeingDeleted(null);
         setEditTaskMessage("");
+        setDeleteTaskMessage("");
         setIsEditTaskPriorityMenuOpen(false);
       }
     }
@@ -153,7 +159,7 @@ export default function TasksSection() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutsideSelectedTask);
     };
-  }, [isUpdatingTask, selectedTaskId]);
+  }, [isDeletingTask, isUpdatingTask, selectedTaskId]);
 
   const taskSummary = useMemo(() => {
     const tasks = focusGroups.flatMap((group) => group.tasks);
@@ -266,6 +272,48 @@ export default function TasksSection() {
     setEditTaskPriority("MEDIA");
     setEditTaskMessage("");
     setIsEditTaskPriorityMenuOpen(false);
+  }
+
+  async function handleDeleteTask(task, focusId) {
+    setSelectedTaskId(task.id);
+    setTaskBeingDeleted({
+      ...task,
+      focusId,
+    });
+    setDeleteTaskMessage("");
+    setIsDeletingTask(true);
+
+    try {
+      await deleteTask({
+        focusId,
+        taskId: task.id,
+      });
+
+      setFocusGroups((currentGroups) =>
+        currentGroups.map((group) =>
+          group.id === focusId
+            ? {
+                ...group,
+                tasks: group.tasks.filter(
+                  (currentTask) => currentTask.id !== task.id
+                ),
+              }
+            : group
+        )
+      );
+
+      setSelectedTaskId(null);
+      setTaskBeingEdited(null);
+      setTaskBeingDeleted(null);
+      setDeleteTaskMessage("");
+      setIsEditTaskPriorityMenuOpen(false);
+    } catch (error) {
+      setDeleteTaskMessage(
+        getApiErrorMessage(error, "Could not delete task. Try again.")
+      );
+    } finally {
+      setIsDeletingTask(false);
+    }
   }
 
   async function handleCreateFocus(event) {
@@ -881,16 +929,36 @@ export default function TasksSection() {
                               </div>
 
                               {isSelectedTask && (
-                                <button
-                                  type="button"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openEditTaskMode(task, group.id);
-                                  }}
-                                  className="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-blue-400/40 hover:text-blue-300"
-                                >
-                                  Edit task
-                                </button>
+                                <div className="flex shrink-0 items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      openEditTaskMode(task, group.id);
+                                    }}
+                                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-blue-400/40 hover:text-blue-300"
+                                  >
+                                    Edit task
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleDeleteTask(task, group.id);
+                                    }}
+                                    disabled={
+                                      isDeletingTask &&
+                                      taskBeingDeleted?.id === task.id
+                                    }
+                                    className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 transition hover:border-red-400/40 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                                  >
+                                    {isDeletingTask &&
+                                    taskBeingDeleted?.id === task.id
+                                      ? "Deleting..."
+                                      : "Delete task"}
+                                  </button>
+                                </div>
                               )}
                             </div>
 
@@ -899,6 +967,13 @@ export default function TasksSection() {
                             >
                               {priorityOption.label.toLowerCase()}
                             </span>
+
+                            {deleteTaskMessage &&
+                              taskBeingDeleted?.id === task.id && (
+                                <span className="mt-2 block text-xs text-red-400">
+                                  {deleteTaskMessage}
+                                </span>
+                              )}
                           </>
                         )}
 

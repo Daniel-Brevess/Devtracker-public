@@ -31,3 +31,9 @@ export async function updateTask({
 
   return response.data;
 }
+
+export async function deleteTask({ focusId, taskId }) {
+  const response = await api.delete(`/task/focus/${focusId}/${taskId}/delete`);
+
+  return response.data;
+}
