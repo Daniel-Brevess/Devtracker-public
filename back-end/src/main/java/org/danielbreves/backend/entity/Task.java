@@ -1,9 +1,9 @@
 package org.danielbreves.backend.entity;
 
 import jakarta.persistence.*;
+import org.danielbreves.backend.entity.enums.TaskPriority;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -25,8 +25,8 @@ public class Task implements Serializable {
 
     private String description;
 
-    @Column(name = "due_date")
-    private LocalDate dueDate;
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority;
 
     private Boolean status;
 
@@ -41,7 +41,7 @@ public class Task implements Serializable {
             Focus focus,
             String title,
             String description,
-            LocalDate dueDate,
+            TaskPriority priority,
             Boolean status,
             LocalDateTime createdAt
     ) {
@@ -49,7 +49,7 @@ public class Task implements Serializable {
         this.focus = focus;
         this.title = title;
         this.description = description;
-        this.dueDate = dueDate;
+        this.priority = priority;
         this.status = status;
         this.createdAt = createdAt;
     }
@@ -82,12 +82,12 @@ public class Task implements Serializable {
         this.description = description;
     }
 
-    public LocalDate getDueDate() {
-        return dueDate;
+    public TaskPriority getPriority() {
+        return priority;
     }
 
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
+    public void setPriority(TaskPriority priority) {
+        this.priority = priority;
     }
 
     public Boolean getStatus() {

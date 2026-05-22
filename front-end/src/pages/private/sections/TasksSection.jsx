@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   Circle,
   Pencil,
   Plus,
@@ -16,7 +17,36 @@ import {
   getAllFocuses,
   updateFocus,
 } from "../../../services/focus/focusService";
+import { createTask } from "../../../services/task/taskService";
 import { getApiErrorMessage } from "../../../utils/apiError";
+
+const taskPriorityOptions = [
+  {
+    activeClassName: "bg-emerald-500/10 text-emerald-300",
+    hoverClassName: "hover:bg-emerald-500/10 hover:text-emerald-300",
+    label: "Baixa",
+    value: "BAIXA",
+  },
+  {
+    activeClassName: "bg-yellow-500/10 text-yellow-300",
+    hoverClassName: "hover:bg-yellow-500/10 hover:text-yellow-300",
+    label: "Media",
+    value: "MEDIA",
+  },
+  {
+    activeClassName: "bg-red-500/10 text-red-300",
+    hoverClassName: "hover:bg-red-500/10 hover:text-red-300",
+    label: "Alta",
+    value: "ALTA",
+  },
+];
+
+function getTaskPriorityOption(priority) {
+  return (
+    taskPriorityOptions.find((option) => option.value === priority) ||
+    taskPriorityOptions[1]
+  );
+}
 
 function mapFocusToGroup(focus) {
   return {
@@ -24,6 +54,17 @@ function mapFocusToGroup(focus) {
     title: focus.title,
     createdAt: focus.createdAt,
     tasks: [],
+  };
+}
+
+function mapTaskToCard(task) {
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    priority: task.priority,
+    meta: task.description || task.priority,
+    done: Boolean(task.status),
   };
 }
 
@@ -42,6 +83,13 @@ export default function TasksSection() {
   const [focusBeingDeleted, setFocusBeingDeleted] = useState(null);
   const [deleteFocusMessage, setDeleteFocusMessage] = useState("");
   const [isDeletingFocus, setIsDeletingFocus] = useState(false);
+  const [taskFormFocusId, setTaskFormFocusId] = useState(null);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskPriority, setTaskPriority] = useState("MEDIA");
+  const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
+  const [createTaskMessage, setCreateTaskMessage] = useState("");
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   useEffect(() => {
     async function loadFocuses() {
@@ -112,6 +160,26 @@ export default function TasksSection() {
 
     setFocusBeingDeleted(null);
     setDeleteFocusMessage("");
+  }
+
+  function openTaskForm(focusId) {
+    setTaskFormFocusId(focusId);
+    setTaskTitle("");
+    setTaskDescription("");
+    setTaskPriority("MEDIA");
+    setCreateTaskMessage("");
+    setIsPriorityMenuOpen(false);
+  }
+
+  function closeTaskForm() {
+    if (isCreatingTask) return;
+
+    setTaskFormFocusId(null);
+    setTaskTitle("");
+    setTaskDescription("");
+    setTaskPriority("MEDIA");
+    setCreateTaskMessage("");
+    setIsPriorityMenuOpen(false);
   }
 
   async function handleCreateFocus(event) {
@@ -209,6 +277,159 @@ export default function TasksSection() {
     } finally {
       setIsDeletingFocus(false);
     }
+  }
+
+  async function handleCreateTask(event) {
+    event.preventDefault();
+
+    const trimmedTitle = taskTitle.trim();
+    const trimmedDescription = taskDescription.trim();
+    setCreateTaskMessage("");
+
+    if (!trimmedTitle) {
+      setCreateTaskMessage("Add a title for this task.");
+      return;
+    }
+
+    setIsCreatingTask(true);
+
+    try {
+      const createdTask = await createTask({
+        focusId: taskFormFocusId,
+        title: trimmedTitle,
+        description: trimmedDescription,
+        priority: taskPriority,
+      });
+
+      setFocusGroups((currentGroups) =>
+        currentGroups.map((group) =>
+          group.id === createdTask.idFocus
+            ? {
+                ...group,
+                tasks: [...group.tasks, mapTaskToCard(createdTask)],
+              }
+            : group
+        )
+      );
+
+      setTaskFormFocusId(null);
+      setTaskTitle("");
+      setTaskDescription("");
+      setTaskPriority("MEDIA");
+      setCreateTaskMessage("");
+      setIsPriorityMenuOpen(false);
+    } catch (error) {
+      setCreateTaskMessage(
+        getApiErrorMessage(error, "Could not create task. Try again.")
+      );
+    } finally {
+      setIsCreatingTask(false);
+    }
+  }
+
+  const selectedPriorityLabel =
+    getTaskPriorityOption(taskPriority).label;
+  const selectedPriorityClassName =
+    getTaskPriorityOption(taskPriority).activeClassName;
+
+  function renderCreateTaskForm() {
+    return (
+      <form
+        onSubmit={handleCreateTask}
+        className="w-full max-w-sm rounded-2xl border border-white/10 bg-black/40 p-3"
+      >
+        <div className="grid gap-2.5">
+          <input
+            name="taskTitle"
+            type="text"
+            value={taskTitle}
+            onChange={(event) => {
+              setTaskTitle(event.target.value);
+              setCreateTaskMessage("");
+            }}
+            maxLength={255}
+            placeholder="Task title"
+            className="w-full rounded-xl border border-white/10 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-blue-500/50"
+          />
+
+          <input
+            name="taskDescription"
+            type="text"
+            value={taskDescription}
+            onChange={(event) => {
+              setTaskDescription(event.target.value);
+              setCreateTaskMessage("");
+            }}
+            maxLength={255}
+            placeholder="Description"
+            className="w-full rounded-xl border border-white/10 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-blue-500/50"
+          />
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() =>
+                setIsPriorityMenuOpen((currentState) => !currentState)
+              }
+              className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-zinc-950/70 px-3 py-2 text-sm transition hover:border-white/20"
+            >
+              <span
+                className={`rounded-lg px-2 py-0.5 text-xs font-semibold ${selectedPriorityClassName}`}
+              >
+                {selectedPriorityLabel}
+              </span>
+              <ChevronDown className="h-4 w-4 text-zinc-500" />
+            </button>
+
+            {isPriorityMenuOpen && (
+              <div className="absolute left-0 right-0 top-11 z-20 rounded-2xl border border-white/10 bg-zinc-950 p-1.5 shadow-xl shadow-black/40">
+                {taskPriorityOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setTaskPriority(option.value);
+                      setIsPriorityMenuOpen(false);
+                      setCreateTaskMessage("");
+                    }}
+                    className={`flex w-full rounded-xl px-3 py-2 text-left text-sm transition ${
+                      taskPriority === option.value
+                        ? option.activeClassName
+                        : `text-zinc-400 ${option.hoverClassName}`
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {createTaskMessage && (
+            <span className="text-sm text-red-400">{createTaskMessage}</span>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={closeTaskForm}
+              disabled={isCreatingTask}
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white transition hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={isCreatingTask}
+              className="rounded-xl bg-white px-3 py-2 text-xs font-bold text-black transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isCreatingTask ? "Creating..." : "Create task"}
+            </button>
+          </div>
+        </div>
+      </form>
+    );
   }
 
   return (
@@ -343,6 +564,7 @@ export default function TasksSection() {
                 {group.tasks.length === 0 && (
                   <button
                     type="button"
+                    onClick={() => openTaskForm(group.id)}
                     className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-white/10 bg-black/40 p-4 text-left transition hover:border-blue-400/40 hover:bg-blue-500/5"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-blue-400">
@@ -360,16 +582,21 @@ export default function TasksSection() {
                   </button>
                 )}
 
+                {group.tasks.length === 0 &&
+                  taskFormFocusId === group.id &&
+                  renderCreateTaskForm()}
+
                 {group.tasks.map((task) => {
                   const StatusIcon = task.done ? CheckCircle2 : Circle;
+                  const priorityOption = getTaskPriorityOption(task.priority);
 
                   return (
                     <div
                       key={task.title}
-                      className="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/40 p-4 transition hover:border-white/15"
+                      className="flex items-start gap-3 rounded-2xl border border-white/5 bg-black/40 px-4 py-3 transition hover:border-white/15"
                     >
                       <StatusIcon
-                        className={`h-5 w-5 shrink-0 ${
+                        className={`mt-0.5 h-4 w-4 shrink-0 ${
                           task.done ? "text-emerald-400" : "text-zinc-600"
                         }`}
                       />
@@ -386,10 +613,31 @@ export default function TasksSection() {
                         <span className="mt-1 block text-xs text-zinc-600">
                           {task.meta}
                         </span>
+
+                        <span
+                          className={`mt-1.5 inline-flex rounded px-1.5 py-px text-[9px] font-semibold lowercase leading-none ${priorityOption.activeClassName}`}
+                        >
+                          {priorityOption.label.toLowerCase()}
+                        </span>
                       </div>
                     </div>
                   );
                 })}
+
+                {group.tasks.length > 0 && taskFormFocusId !== group.id && (
+                  <button
+                    type="button"
+                    onClick={() => openTaskForm(group.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 bg-black/30 px-4 py-3 text-sm font-medium text-zinc-400 transition hover:border-blue-400/40 hover:bg-blue-500/5 hover:text-blue-300"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add task
+                  </button>
+                )}
+
+                {group.tasks.length > 0 &&
+                  taskFormFocusId === group.id &&
+                  renderCreateTaskForm()}
               </div>
             </div>
           ))}
