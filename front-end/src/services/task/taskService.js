@@ -9,3 +9,9 @@ export async function createTask({ focusId, title, description, priority }) {
 
   return response.data;
 }
+
+export async function getTasksByFocus(focusId) {
+  const response = await api.get(`/task/focus/${focusId}/all`);
+
+  return response.data;
+}

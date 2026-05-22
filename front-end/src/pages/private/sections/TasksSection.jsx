@@ -17,7 +17,10 @@ import {
   getAllFocuses,
   updateFocus,
 } from "../../../services/focus/focusService";
-import { createTask } from "../../../services/task/taskService";
+import {
+  createTask,
+  getTasksByFocus,
+} from "../../../services/task/taskService";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
 const taskPriorityOptions = [
@@ -48,12 +51,12 @@ function getTaskPriorityOption(priority) {
   );
 }
 
-function mapFocusToGroup(focus) {
+function mapFocusToGroup(focus, tasks = []) {
   return {
     id: focus.id,
     title: focus.title,
     createdAt: focus.createdAt,
-    tasks: [],
+    tasks: tasks.map(mapTaskToCard),
   };
 }
 
@@ -98,8 +101,15 @@ export default function TasksSection() {
 
       try {
         const focuses = await getAllFocuses();
+        const focusGroupsWithTasks = await Promise.all(
+          focuses.map(async (focus) => {
+            const tasks = await getTasksByFocus(focus.id);
 
-        setFocusGroups(focuses.map(mapFocusToGroup));
+            return mapFocusToGroup(focus, tasks);
+          })
+        );
+
+        setFocusGroups(focusGroupsWithTasks);
       } catch (error) {
         setFocusesMessage(
           getApiErrorMessage(error, "Could not load focuses. Try again.")

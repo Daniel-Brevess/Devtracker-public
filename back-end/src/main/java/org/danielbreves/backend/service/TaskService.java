@@ -2,6 +2,7 @@ package org.danielbreves.backend.service;
 
 import org.danielbreves.backend.dto.task.CreateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.CreateTaskResponseDTO;
+import org.danielbreves.backend.dto.task.TaskResponseDTO;
 import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.Task;
 import org.danielbreves.backend.entity.User;
@@ -9,6 +10,8 @@ import org.danielbreves.backend.repository.FocusRepository;
 import org.danielbreves.backend.repository.TaskRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class TaskService {
@@ -59,5 +62,26 @@ public class TaskService {
                 savedTask.getStatus(),
                 savedTask.getCreatedAt()
         );
+    }
+
+    public List<TaskResponseDTO> getTasksByFocus(String currentEmail, Long focusId) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Focus focus = focusRepository.findByIdAndUser(focusId, user)
+                .orElseThrow(() -> new RuntimeException("Focus not found"));
+
+        return taskRepository.findAllByFocus(focus)
+                .stream()
+                .map(task -> new TaskResponseDTO(
+                        task.getId(),
+                        task.getFocus().getId(),
+                        task.getTitle(),
+                        task.getDescription(),
+                        task.getPriority(),
+                        task.getStatus(),
+                        task.getCreatedAt()
+                ))
+                .toList();
     }
 }
