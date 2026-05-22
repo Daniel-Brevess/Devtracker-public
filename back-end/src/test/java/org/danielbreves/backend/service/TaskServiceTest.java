@@ -4,6 +4,7 @@ import org.danielbreves.backend.dto.task.CreateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.CreateTaskResponseDTO;
 import org.danielbreves.backend.dto.task.DeleteTaskResponseDTO;
 import org.danielbreves.backend.dto.task.TaskResponseDTO;
+import org.danielbreves.backend.dto.task.ToggleTaskStatusResponseDTO;
 import org.danielbreves.backend.dto.task.UpdateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.UpdateTaskResponseDTO;
 import org.danielbreves.backend.entity.Focus;
@@ -211,6 +212,52 @@ class TaskServiceTest {
         verify(taskRepository).findByIdAndFocus(20L, focus);
         verify(taskRepository).delete(task);
         assertEquals("Task deleted successfully", responseDTO.message());
+    }
+
+    @Test
+    void toggleTaskStatusFindsTaskByIdAndFocusOwnedByCurrentUserBeforeSaving() {
+        TaskRepository taskRepository = mock(TaskRepository.class);
+        FocusRepository focusRepository = mock(FocusRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TaskService taskService = new TaskService(
+                taskRepository,
+                focusRepository,
+                userRepository
+        );
+
+        String currentEmail = "user@test.com";
+        User user = new User(1L, "User", "username", "password", currentEmail, null);
+        Focus focus = new Focus(10L, user, "Study", null);
+        LocalDateTime createdAt = LocalDateTime.now();
+        Task task = new Task(
+                20L,
+                focus,
+                "Read chapter",
+                "Read the first chapter",
+                TaskPriority.ALTA,
+                false,
+                createdAt
+        );
+
+        when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
+        when(focusRepository.findByIdAndUser(10L, user)).thenReturn(Optional.of(focus));
+        when(taskRepository.findByIdAndFocus(20L, focus)).thenReturn(Optional.of(task));
+        when(taskRepository.save(task)).thenReturn(task);
+
+        ToggleTaskStatusResponseDTO responseDTO =
+                taskService.toggleTaskStatus(currentEmail, 10L, 20L);
+
+        verify(userRepository).findByEmail(currentEmail);
+        verify(focusRepository).findByIdAndUser(10L, user);
+        verify(taskRepository).findByIdAndFocus(20L, focus);
+        verify(taskRepository).save(task);
+        assertEquals(20L, responseDTO.id());
+        assertEquals(10L, responseDTO.idFocus());
+        assertEquals("Read chapter", responseDTO.title());
+        assertEquals("Read the first chapter", responseDTO.description());
+        assertEquals(TaskPriority.ALTA, responseDTO.priority());
+        assertEquals(true, responseDTO.status());
+        assertEquals(createdAt, responseDTO.createdAt());
     }
 
 }

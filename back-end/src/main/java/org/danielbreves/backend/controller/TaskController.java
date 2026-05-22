@@ -5,6 +5,7 @@ import org.danielbreves.backend.dto.task.CreateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.CreateTaskResponseDTO;
 import org.danielbreves.backend.dto.task.DeleteTaskResponseDTO;
 import org.danielbreves.backend.dto.task.TaskResponseDTO;
+import org.danielbreves.backend.dto.task.ToggleTaskStatusResponseDTO;
 import org.danielbreves.backend.dto.task.UpdateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.UpdateTaskResponseDTO;
 import org.danielbreves.backend.service.TaskService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -84,6 +86,22 @@ public class TaskController {
     ) {
         DeleteTaskResponseDTO responseDTO =
                 taskService.deleteTask(
+                        principal.getName(),
+                        focusId,
+                        taskId
+                );
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @PatchMapping("/focus/{focusId}/{taskId}/toggle-status")
+    public ResponseEntity<ToggleTaskStatusResponseDTO> toggleTaskStatus(
+            @PathVariable Long focusId,
+            @PathVariable Long taskId,
+            Principal principal
+    ) {
+        ToggleTaskStatusResponseDTO responseDTO =
+                taskService.toggleTaskStatus(
                         principal.getName(),
                         focusId,
                         taskId

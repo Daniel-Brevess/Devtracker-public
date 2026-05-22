@@ -4,6 +4,7 @@ import org.danielbreves.backend.dto.task.CreateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.CreateTaskResponseDTO;
 import org.danielbreves.backend.dto.task.DeleteTaskResponseDTO;
 import org.danielbreves.backend.dto.task.TaskResponseDTO;
+import org.danielbreves.backend.dto.task.ToggleTaskStatusResponseDTO;
 import org.danielbreves.backend.dto.task.UpdateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.UpdateTaskResponseDTO;
 import org.danielbreves.backend.entity.Focus;
@@ -137,6 +138,35 @@ public class TaskService {
         taskRepository.delete(task);
 
         return new DeleteTaskResponseDTO("Task deleted successfully");
+    }
+
+    public ToggleTaskStatusResponseDTO toggleTaskStatus(
+            String currentEmail,
+            Long focusId,
+            Long taskId
+    ) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Focus focus = focusRepository.findByIdAndUser(focusId, user)
+                .orElseThrow(() -> new RuntimeException("Focus not found"));
+
+        Task task = taskRepository.findByIdAndFocus(taskId, focus)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        task.setStatus(!Boolean.TRUE.equals(task.getStatus()));
+
+        Task updatedTask = taskRepository.save(task);
+
+        return new ToggleTaskStatusResponseDTO(
+                updatedTask.getId(),
+                updatedTask.getFocus().getId(),
+                updatedTask.getTitle(),
+                updatedTask.getDescription(),
+                updatedTask.getPriority(),
+                updatedTask.getStatus(),
+                updatedTask.getCreatedAt()
+        );
     }
 
 }
