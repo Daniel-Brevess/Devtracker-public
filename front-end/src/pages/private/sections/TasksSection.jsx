@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
@@ -20,6 +20,7 @@ import {
 import {
   createTask,
   getTasksByFocus,
+  updateTask,
 } from "../../../services/task/taskService";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
@@ -72,6 +73,7 @@ function mapTaskToCard(task) {
 }
 
 export default function TasksSection() {
+  const selectedTaskRef = useRef(null);
   const [focusGroups, setFocusGroups] = useState([]);
   const [isCreateFocusModalOpen, setIsCreateFocusModalOpen] = useState(false);
   const [focusTitle, setFocusTitle] = useState("");
@@ -93,6 +95,15 @@ export default function TasksSection() {
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
   const [createTaskMessage, setCreateTaskMessage] = useState("");
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [taskBeingEdited, setTaskBeingEdited] = useState(null);
+  const [editTaskTitle, setEditTaskTitle] = useState("");
+  const [editTaskDescription, setEditTaskDescription] = useState("");
+  const [editTaskPriority, setEditTaskPriority] = useState("MEDIA");
+  const [isEditTaskPriorityMenuOpen, setIsEditTaskPriorityMenuOpen] =
+    useState(false);
+  const [editTaskMessage, setEditTaskMessage] = useState("");
+  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
 
   useEffect(() => {
     async function loadFocuses() {
@@ -121,6 +132,28 @@ export default function TasksSection() {
 
     loadFocuses();
   }, []);
+
+  useEffect(() => {
+    function handleClickOutsideSelectedTask(event) {
+      if (isUpdatingTask || !selectedTaskId) return;
+
+      if (
+        selectedTaskRef.current &&
+        !selectedTaskRef.current.contains(event.target)
+      ) {
+        setSelectedTaskId(null);
+        setTaskBeingEdited(null);
+        setEditTaskMessage("");
+        setIsEditTaskPriorityMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutsideSelectedTask);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideSelectedTask);
+    };
+  }, [isUpdatingTask, selectedTaskId]);
 
   const taskSummary = useMemo(() => {
     const tasks = focusGroups.flatMap((group) => group.tasks);
@@ -190,6 +223,42 @@ export default function TasksSection() {
     setTaskPriority("MEDIA");
     setCreateTaskMessage("");
     setIsPriorityMenuOpen(false);
+  }
+
+  function selectTask(task) {
+    if (isUpdatingTask) return;
+
+    setSelectedTaskId(task.id);
+
+    if (taskBeingEdited?.id !== task.id) {
+      setTaskBeingEdited(null);
+      setEditTaskMessage("");
+      setIsEditTaskPriorityMenuOpen(false);
+    }
+  }
+
+  function openEditTaskMode(task, focusId) {
+    setSelectedTaskId(task.id);
+    setTaskBeingEdited({
+      ...task,
+      focusId,
+    });
+    setEditTaskTitle(task.title);
+    setEditTaskDescription(task.description || "");
+    setEditTaskPriority(task.priority || "MEDIA");
+    setEditTaskMessage("");
+    setIsEditTaskPriorityMenuOpen(false);
+  }
+
+  function closeEditTaskMode() {
+    if (isUpdatingTask) return;
+
+    setTaskBeingEdited(null);
+    setEditTaskTitle("");
+    setEditTaskDescription("");
+    setEditTaskPriority("MEDIA");
+    setEditTaskMessage("");
+    setIsEditTaskPriorityMenuOpen(false);
   }
 
   async function handleCreateFocus(event) {
@@ -337,10 +406,66 @@ export default function TasksSection() {
     }
   }
 
+  async function handleUpdateTask(event) {
+    event.preventDefault();
+
+    const trimmedTitle = editTaskTitle.trim();
+    const trimmedDescription = editTaskDescription.trim();
+    setEditTaskMessage("");
+
+    if (!trimmedTitle) {
+      setEditTaskMessage("Add a title for this task.");
+      return;
+    }
+
+    setIsUpdatingTask(true);
+
+    try {
+      const updatedTask = await updateTask({
+        focusId: taskBeingEdited.focusId,
+        taskId: taskBeingEdited.id,
+        title: trimmedTitle,
+        description: trimmedDescription,
+        priority: editTaskPriority,
+      });
+
+      setFocusGroups((currentGroups) =>
+        currentGroups.map((group) =>
+          group.id === updatedTask.idFocus
+            ? {
+                ...group,
+                tasks: group.tasks.map((task) =>
+                  task.id === updatedTask.id ? mapTaskToCard(updatedTask) : task
+                ),
+              }
+            : group
+        )
+      );
+
+      setSelectedTaskId(updatedTask.id);
+      setTaskBeingEdited(null);
+      setEditTaskTitle("");
+      setEditTaskDescription("");
+      setEditTaskPriority("MEDIA");
+      setEditTaskMessage("");
+      setIsEditTaskPriorityMenuOpen(false);
+    } catch (error) {
+      setEditTaskMessage(
+        getApiErrorMessage(error, "Could not update task. Try again.")
+      );
+    } finally {
+      setIsUpdatingTask(false);
+    }
+  }
+
   const selectedPriorityLabel =
     getTaskPriorityOption(taskPriority).label;
   const selectedPriorityClassName =
     getTaskPriorityOption(taskPriority).activeClassName;
+  const selectedEditPriorityLabel =
+    getTaskPriorityOption(editTaskPriority).label;
+  const selectedEditPriorityClassName =
+    getTaskPriorityOption(editTaskPriority).activeClassName;
 
   function renderCreateTaskForm() {
     return (
@@ -437,6 +562,100 @@ export default function TasksSection() {
               {isCreatingTask ? "Creating..." : "Create task"}
             </button>
           </div>
+        </div>
+      </form>
+    );
+  }
+
+  function renderEditTaskForm() {
+    return (
+      <form onSubmit={handleUpdateTask} className="mt-3 space-y-2.5">
+        <input
+          name="editTaskTitle"
+          type="text"
+          value={editTaskTitle}
+          onChange={(event) => {
+            setEditTaskTitle(event.target.value);
+            setEditTaskMessage("");
+          }}
+          maxLength={255}
+          className="w-full rounded-xl border border-white/10 bg-zinc-950/80 px-3 py-2 text-sm text-white outline-none transition-all focus:border-blue-500/50"
+        />
+
+        <input
+          name="editTaskDescription"
+          type="text"
+          value={editTaskDescription}
+          onChange={(event) => {
+            setEditTaskDescription(event.target.value);
+            setEditTaskMessage("");
+          }}
+          maxLength={255}
+          placeholder="Description"
+          className="w-full rounded-xl border border-white/10 bg-zinc-950/80 px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-blue-500/50"
+        />
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() =>
+              setIsEditTaskPriorityMenuOpen((currentState) => !currentState)
+            }
+            className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-zinc-950/80 px-3 py-2 text-sm transition hover:border-white/20"
+          >
+            <span
+              className={`rounded-lg px-2 py-0.5 text-xs font-semibold ${selectedEditPriorityClassName}`}
+            >
+              {selectedEditPriorityLabel}
+            </span>
+            <ChevronDown className="h-4 w-4 text-zinc-500" />
+          </button>
+
+          {isEditTaskPriorityMenuOpen && (
+            <div className="absolute left-0 right-0 top-11 z-30 rounded-2xl border border-white/10 bg-zinc-950 p-1.5 shadow-xl shadow-black/40">
+              {taskPriorityOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setEditTaskPriority(option.value);
+                    setIsEditTaskPriorityMenuOpen(false);
+                    setEditTaskMessage("");
+                  }}
+                  className={`flex w-full rounded-xl px-3 py-2 text-left text-sm transition ${
+                    editTaskPriority === option.value
+                      ? option.activeClassName
+                      : `text-zinc-400 ${option.hoverClassName}`
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {editTaskMessage && (
+          <span className="block text-sm text-red-400">{editTaskMessage}</span>
+        )}
+
+        <div className="flex justify-end gap-2 pt-1">
+          <button
+            type="button"
+            onClick={closeEditTaskMode}
+            disabled={isUpdatingTask}
+            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white transition hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={isUpdatingTask}
+            className="rounded-xl bg-white px-4 py-2 text-xs font-bold text-black transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isUpdatingTask ? "Saving..." : "Edit task"}
+          </button>
         </div>
       </form>
     );
@@ -599,11 +818,30 @@ export default function TasksSection() {
                 {group.tasks.map((task) => {
                   const StatusIcon = task.done ? CheckCircle2 : Circle;
                   const priorityOption = getTaskPriorityOption(task.priority);
+                  const isSelectedTask = selectedTaskId === task.id;
+                  const isEditingTask = taskBeingEdited?.id === task.id;
 
                   return (
                     <div
-                      key={task.title}
-                      className="flex items-start gap-3 rounded-2xl border border-white/5 bg-black/40 px-4 py-3 transition hover:border-white/15"
+                      key={task.id}
+                      ref={isSelectedTask ? selectedTaskRef : null}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => selectTask(task)}
+                      onKeyDown={(event) => {
+                        if (
+                          event.target === event.currentTarget &&
+                          (event.key === "Enter" || event.key === " ")
+                        ) {
+                          event.preventDefault();
+                          selectTask(task);
+                        }
+                      }}
+                      className={`relative flex cursor-pointer items-start gap-3 rounded-2xl border px-4 transition hover:border-white/15 ${
+                        isSelectedTask
+                          ? "z-20 scale-[1.02] border-blue-400/30 bg-zinc-950 px-5 py-4 shadow-2xl shadow-black/30"
+                          : "z-0 border-white/5 bg-black/40 py-3"
+                      }`}
                     >
                       <StatusIcon
                         className={`mt-0.5 h-4 w-4 shrink-0 ${
@@ -611,24 +849,49 @@ export default function TasksSection() {
                         }`}
                       />
 
-                      <div className="min-w-0">
-                        <p
-                          className={`truncate text-sm font-medium ${
-                            task.done ? "text-zinc-500 line-through" : "text-white"
-                          }`}
-                        >
-                          {task.title}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        {!isEditingTask && (
+                          <>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p
+                                  className={`truncate text-sm font-medium ${
+                                    task.done
+                                      ? "text-zinc-500 line-through"
+                                      : "text-white"
+                                  }`}
+                                >
+                                  {task.title}
+                                </p>
 
-                        <span className="mt-1 block text-xs text-zinc-600">
-                          {task.meta}
-                        </span>
+                                <span className="mt-1 block text-xs text-zinc-600">
+                                  {task.meta}
+                                </span>
+                              </div>
 
-                        <span
-                          className={`mt-1.5 inline-flex rounded px-1.5 py-px text-[9px] font-semibold lowercase leading-none ${priorityOption.activeClassName}`}
-                        >
-                          {priorityOption.label.toLowerCase()}
-                        </span>
+                              {isSelectedTask && (
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openEditTaskMode(task, group.id);
+                                  }}
+                                  className="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-blue-400/40 hover:text-blue-300"
+                                >
+                                  Edit task
+                                </button>
+                              )}
+                            </div>
+
+                            <span
+                              className={`mt-1.5 inline-flex rounded px-1.5 py-px text-[9px] font-semibold lowercase leading-none ${priorityOption.activeClassName}`}
+                            >
+                              {priorityOption.label.toLowerCase()}
+                            </span>
+                          </>
+                        )}
+
+                        {isEditingTask && renderEditTaskForm()}
                       </div>
                     </div>
                   );

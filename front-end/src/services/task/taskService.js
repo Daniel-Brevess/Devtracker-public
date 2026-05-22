@@ -15,3 +15,19 @@ export async function getTasksByFocus(focusId) {
 
   return response.data;
 }
+
+export async function updateTask({
+  focusId,
+  taskId,
+  title,
+  description,
+  priority,
+}) {
+  const response = await api.put(`/task/focus/${focusId}/${taskId}/update`, {
+    title: title.trim(),
+    description: description.trim(),
+    priority,
+  });
+
+  return response.data;
+}

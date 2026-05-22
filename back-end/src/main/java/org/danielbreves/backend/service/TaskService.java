@@ -3,6 +3,8 @@ package org.danielbreves.backend.service;
 import org.danielbreves.backend.dto.task.CreateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.CreateTaskResponseDTO;
 import org.danielbreves.backend.dto.task.TaskResponseDTO;
+import org.danielbreves.backend.dto.task.UpdateTaskRequestDTO;
+import org.danielbreves.backend.dto.task.UpdateTaskResponseDTO;
 import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.Task;
 import org.danielbreves.backend.entity.User;
@@ -83,5 +85,37 @@ public class TaskService {
                         task.getCreatedAt()
                 ))
                 .toList();
+    }
+
+    public UpdateTaskResponseDTO updateTask(
+            String currentEmail,
+            Long focusId,
+            Long taskId,
+            UpdateTaskRequestDTO requestDTO
+    ) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Focus focus = focusRepository.findByIdAndUser(focusId, user)
+                .orElseThrow(() -> new RuntimeException("Focus not found"));
+
+        Task task = taskRepository.findByIdAndFocus(taskId, focus)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        task.setTitle(requestDTO.title());
+        task.setDescription(requestDTO.description());
+        task.setPriority(requestDTO.priority());
+
+        Task updatedTask = taskRepository.save(task);
+
+        return new UpdateTaskResponseDTO(
+                updatedTask.getId(),
+                updatedTask.getFocus().getId(),
+                updatedTask.getTitle(),
+                updatedTask.getDescription(),
+                updatedTask.getPriority(),
+                updatedTask.getStatus(),
+                updatedTask.getCreatedAt()
+        );
     }
 }

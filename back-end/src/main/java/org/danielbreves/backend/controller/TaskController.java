@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import org.danielbreves.backend.dto.task.CreateTaskRequestDTO;
 import org.danielbreves.backend.dto.task.CreateTaskResponseDTO;
 import org.danielbreves.backend.dto.task.TaskResponseDTO;
+import org.danielbreves.backend.dto.task.UpdateTaskRequestDTO;
+import org.danielbreves.backend.dto.task.UpdateTaskResponseDTO;
 import org.danielbreves.backend.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +52,24 @@ public class TaskController {
     ) {
         List<TaskResponseDTO> responseDTO =
                 taskService.getTasksByFocus(principal.getName(), focusId);
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @PutMapping("/focus/{focusId}/{taskId}/update")
+    public ResponseEntity<UpdateTaskResponseDTO> updateTask(
+            @PathVariable Long focusId,
+            @PathVariable Long taskId,
+            @RequestBody @Valid UpdateTaskRequestDTO requestDTO,
+            Principal principal
+    ) {
+        UpdateTaskResponseDTO responseDTO =
+                taskService.updateTask(
+                        principal.getName(),
+                        focusId,
+                        taskId,
+                        requestDTO
+                );
 
         return ResponseEntity.ok(responseDTO);
     }
