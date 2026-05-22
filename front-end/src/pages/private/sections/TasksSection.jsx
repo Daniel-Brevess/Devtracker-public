@@ -164,6 +164,13 @@ export default function TasksSection() {
       activeFocus: focusGroups[0]?.title || "None",
     };
   }, [focusGroups]);
+  const focusColumns = useMemo(
+    () => [
+      focusGroups.filter((_, index) => index % 2 === 0),
+      focusGroups.filter((_, index) => index % 2 === 1),
+    ],
+    [focusGroups]
+  );
 
   function openCreateFocusModal() {
     setFocusTitle("");
@@ -725,7 +732,7 @@ export default function TasksSection() {
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mt-6">
           {isLoadingFocuses && (
             <div className="rounded-3xl border border-white/10 bg-zinc-950/50 p-5 backdrop-blur-sm lg:col-span-2">
               <p className="text-sm font-medium text-white">
@@ -756,11 +763,15 @@ export default function TasksSection() {
             </div>
           )}
 
-          {focusGroups.map((group) => (
-            <div
-              key={group.id}
-              className="rounded-3xl border border-white/10 bg-zinc-950/50 p-5 backdrop-blur-sm"
-            >
+          {!isLoadingFocuses && !focusesMessage && focusGroups.length > 0 && (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+              {focusColumns.map((column, columnIndex) => (
+                <div key={columnIndex} className="space-y-6">
+                  {column.map((group) => (
+                    <div
+                      key={group.id}
+                      className="rounded-3xl border border-white/10 bg-zinc-950/50 p-5 backdrop-blur-sm"
+                    >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="min-w-0 truncate text-sm font-semibold uppercase tracking-wider text-zinc-500">
                   {group.title}
@@ -913,7 +924,11 @@ export default function TasksSection() {
                   renderCreateTaskForm()}
               </div>
             </div>
-          ))}
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
