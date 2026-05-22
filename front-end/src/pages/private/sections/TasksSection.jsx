@@ -1227,7 +1227,7 @@ export default function TasksSection() {
                   Delete focus
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-                  This will remove the focus from your dashboard.
+                  This will remove the focus and all tasks inside it.
                 </p>
               </div>
 
@@ -1246,7 +1246,7 @@ export default function TasksSection() {
                 {focusBeingDeleted.title}
               </p>
               <span className="mt-1 block text-xs text-zinc-600">
-                Confirm that you want to delete this focus.
+                Confirm that you want to delete this focus and its tasks.
               </span>
             </div>
 

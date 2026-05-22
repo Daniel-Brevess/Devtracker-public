@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -36,11 +37,25 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation() {
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException exception
+    ) {
+        String errorMessage = exception.getMostSpecificCause()
+                .getMessage()
+                .toLowerCase(Locale.ROOT);
+
+        if (errorMessage.contains("email") || errorMessage.contains("username")) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiErrorResponse.withMessage(
+                            "Email or username is already in use"
+                    ));
+        }
+
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ApiErrorResponse.withMessage(
-                        "Email or username is already in use"
+                        "Operation conflicts with existing related data"
                 ));
     }
 

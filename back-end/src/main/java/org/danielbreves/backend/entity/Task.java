@@ -1,6 +1,8 @@
 package org.danielbreves.backend.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.danielbreves.backend.entity.enums.TaskPriority;
 
 import java.io.Serializable;
@@ -19,6 +21,7 @@ public class Task implements Serializable {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_focus", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Focus focus;
 
     private String title;
