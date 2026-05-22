@@ -37,3 +37,11 @@ export async function deleteTask({ focusId, taskId }) {
 
   return response.data;
 }
+
+export async function toggleTaskStatus({ focusId, taskId }) {
+  const response = await api.patch(
+    `/task/focus/${focusId}/${taskId}/toggle-status`
+  );
+
+  return response.data;
+}

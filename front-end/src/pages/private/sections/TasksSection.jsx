@@ -21,6 +21,7 @@ import {
   createTask,
   deleteTask,
   getTasksByFocus,
+  toggleTaskStatus,
   updateTask,
 } from "../../../services/task/taskService";
 import { getApiErrorMessage } from "../../../utils/apiError";
@@ -108,6 +109,9 @@ export default function TasksSection() {
   const [taskBeingDeleted, setTaskBeingDeleted] = useState(null);
   const [deleteTaskMessage, setDeleteTaskMessage] = useState("");
   const [isDeletingTask, setIsDeletingTask] = useState(false);
+  const [taskBeingToggled, setTaskBeingToggled] = useState(null);
+  const [toggleTaskMessage, setToggleTaskMessage] = useState("");
+  const [isTogglingTask, setIsTogglingTask] = useState(false);
 
   useEffect(() => {
     async function loadFocuses() {
@@ -139,7 +143,9 @@ export default function TasksSection() {
 
   useEffect(() => {
     function handleClickOutsideSelectedTask(event) {
-      if (isUpdatingTask || isDeletingTask || !selectedTaskId) return;
+      if (isUpdatingTask || isDeletingTask || isTogglingTask || !selectedTaskId) {
+        return;
+      }
 
       if (
         selectedTaskRef.current &&
@@ -148,8 +154,10 @@ export default function TasksSection() {
         setSelectedTaskId(null);
         setTaskBeingEdited(null);
         setTaskBeingDeleted(null);
+        setTaskBeingToggled(null);
         setEditTaskMessage("");
         setDeleteTaskMessage("");
+        setToggleTaskMessage("");
         setIsEditTaskPriorityMenuOpen(false);
       }
     }
@@ -159,7 +167,7 @@ export default function TasksSection() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutsideSelectedTask);
     };
-  }, [isDeletingTask, isUpdatingTask, selectedTaskId]);
+  }, [isDeletingTask, isTogglingTask, isUpdatingTask, selectedTaskId]);
 
   const taskSummary = useMemo(() => {
     const tasks = focusGroups.flatMap((group) => group.tasks);
@@ -313,6 +321,48 @@ export default function TasksSection() {
       );
     } finally {
       setIsDeletingTask(false);
+    }
+  }
+
+  async function handleToggleTaskStatus(task, focusId) {
+    if (isTogglingTask || isUpdatingTask || isDeletingTask) return;
+
+    setTaskBeingToggled({
+      ...task,
+      focusId,
+    });
+    setToggleTaskMessage("");
+    setIsTogglingTask(true);
+
+    try {
+      const updatedTask = await toggleTaskStatus({
+        focusId,
+        taskId: task.id,
+      });
+
+      setFocusGroups((currentGroups) =>
+        currentGroups.map((group) =>
+          group.id === updatedTask.idFocus
+            ? {
+                ...group,
+                tasks: group.tasks.map((currentTask) =>
+                  currentTask.id === updatedTask.id
+                    ? mapTaskToCard(updatedTask)
+                    : currentTask
+                ),
+              }
+            : group
+        )
+      );
+
+      setTaskBeingToggled(null);
+      setToggleTaskMessage("");
+    } catch (error) {
+      setToggleTaskMessage(
+        getApiErrorMessage(error, "Could not update task status. Try again.")
+      );
+    } finally {
+      setIsTogglingTask(false);
     }
   }
 
@@ -879,6 +929,8 @@ export default function TasksSection() {
                   const priorityOption = getTaskPriorityOption(task.priority);
                   const isSelectedTask = selectedTaskId === task.id;
                   const isEditingTask = taskBeingEdited?.id === task.id;
+                  const isTogglingThisTask =
+                    isTogglingTask && taskBeingToggled?.id === task.id;
 
                   return (
                     <div
@@ -902,11 +954,24 @@ export default function TasksSection() {
                           : "z-0 border-white/5 bg-black/40 py-3"
                       }`}
                     >
-                      <StatusIcon
-                        className={`mt-0.5 h-4 w-4 shrink-0 ${
-                          task.done ? "text-emerald-400" : "text-zinc-600"
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleToggleTaskStatus(task, group.id);
+                        }}
+                        disabled={isTogglingThisTask}
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition hover:scale-110 disabled:cursor-not-allowed disabled:opacity-60 ${
+                          task.done
+                            ? "text-emerald-400 hover:text-emerald-300"
+                            : "text-zinc-600 hover:text-emerald-400"
                         }`}
-                      />
+                        aria-label={
+                          task.done ? "Mark task as open" : "Mark task as done"
+                        }
+                      >
+                        <StatusIcon className="h-4 w-4" />
+                      </button>
 
                       <div className="min-w-0 flex-1">
                         {!isEditingTask && (
@@ -972,6 +1037,13 @@ export default function TasksSection() {
                               taskBeingDeleted?.id === task.id && (
                                 <span className="mt-2 block text-xs text-red-400">
                                   {deleteTaskMessage}
+                                </span>
+                              )}
+
+                            {toggleTaskMessage &&
+                              taskBeingToggled?.id === task.id && (
+                                <span className="mt-2 block text-xs text-red-400">
+                                  {toggleTaskMessage}
                                 </span>
                               )}
                           </>
