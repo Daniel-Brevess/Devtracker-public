@@ -1,0 +1,171 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 3457 >>
+stream
+BT
+/F1 16 Tf
+50 790 Td
+(DevTrack - Checklist Pos-MVP e Antes do Deploy) Tj
+/F1 11 Tf
+14 TL
+T*
+(Data: 2026-05-24) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(Objetivo) Tj
+/F1 11 Tf
+T*
+(Este documento registra itens de seguranca que podem ficar para depois do MVP,) Tj
+T*
+(e tambem os ajustes minimos que devem ser feitos antes de qualquer deploy publico.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(ANTES DO DEPLOY PUBLICO - OBRIGATORIO) Tj
+/F1 11 Tf
+T*
+(1. Remover jwt.secret do application.properties.) Tj
+T*
+(2. Remover senha do banco do application.properties.) Tj
+T*
+(3. Ler segredos por variaveis de ambiente ou secret manager.) Tj
+T*
+(4. Criar usuario de banco especifico para a aplicacao, sem usar root.) Tj
+T*
+(5. Desativar spring.jpa.show-sql em ambiente publico.) Tj
+T*
+(6. Evitar spring.jpa.hibernate.ddl-auto=update fora de desenvolvimento.) Tj
+T*
+(7. Configurar CORS apenas para o dominio real do front-end.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(POS-MVP - AUTH / USER) Tj
+/F1 11 Tf
+T*
+(1. Adicionar rate limit em /user/login para reduzir brute force.) Tj
+T*
+(2. Adicionar rate limit em /user/register para reduzir spam de cadastro.) Tj
+T*
+(3. Exigir senha atual para troca de email.) Tj
+T*
+(4. Implementar revogacao ou rotacao de JWT apos logout/troca de senha.) Tj
+T*
+(5. Avaliar refresh token com expiracao curta do access token.) Tj
+T*
+(6. Melhorar mensagens e status HTTP para erros de autenticacao/autorizacao.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(POS-MVP - TOKEN / FRONT-END) Tj
+/F1 11 Tf
+T*
+(1. Reavaliar armazenamento do JWT em localStorage.) Tj
+T*
+(2. Adicionar Content Security Policy quando houver build de producao.) Tj
+T*
+(3. Validar expiracao do token no front-end antes de mostrar rotas privadas.) Tj
+T*
+(4. Manter o backend como fonte final de autorizacao, nao o front-end.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(POS-MVP - FOCUS) Tj
+/F1 11 Tf
+T*
+(1. Adicionar paginacao ou limite em /focus/all.) Tj
+T*
+(2. Adicionar quota de quantidade maxima de focuses por usuario.) Tj
+T*
+(3. Considerar reautenticacao para deletar focus com muitas tasks.) Tj
+T*
+(4. Manter validacao de dono via findByIdAndUser em todos os fluxos.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(POS-MVP - TASK) Tj
+/F1 11 Tf
+T*
+(1. Adicionar paginacao ou limite em /task/focus/{focusId}/all.) Tj
+T*
+(2. Adicionar quota de quantidade maxima de tasks por focus/usuario.) Tj
+T*
+(3. Evitar carregamento N+1 no front-end quando houver muitos focuses.) Tj
+T*
+(4. Manter validacao de dono via focus do usuario antes de update/delete/toggle.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(POS-MVP - BANCO / INFRA) Tj
+/F1 11 Tf
+T*
+(1. Separar perfis de configuracao: dev, test e prod.) Tj
+T*
+(2. Usar migrations versionadas em vez de schema update automatico em prod.) Tj
+T*
+(3. Revisar logs para evitar exposicao de dados sensiveis.) Tj
+T*
+(4. Fazer backup e plano de rollback antes do deploy.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(OBSERVACAO SOBRE SQL INJECTION) Tj
+/F1 11 Tf
+T*
+(Na auditoria atual nao foi encontrada SQL Injection nos endpoints da aplicacao.) Tj
+T*
+(Os repositories usam metodos derivados do Spring Data JPA e nao SQL concatenado) Tj
+T*
+(com entrada do usuario. O item deve ser reavaliado se forem adicionadas queries) Tj
+T*
+(manuais, nativeQuery, EntityManager, JDBC direto ou filtros dinamicos.) Tj
+T*
+() Tj
+T*
+/F1 12 Tf
+(PRIORIDADE PRATICA) Tj
+/F1 11 Tf
+T*
+(Para finalizar o MVP, manter os fluxos principais estaveis. Antes de publicar,) Tj
+T*
+(fazer pelo menos os itens obrigatorios de segredos/configuracao. Os demais ficam) Tj
+T*
+(como hardening Pos-MVP.) Tj
+ET
+
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+3820
+%%EOF
