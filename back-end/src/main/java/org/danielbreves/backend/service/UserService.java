@@ -1,7 +1,12 @@
 package org.danielbreves.backend.service;
 
-import org.danielbreves.backend.dto.user.*;
-import org.danielbreves.backend.security.JwtService;
+import org.danielbreves.backend.dto.user.UserDeleteRequestDTO;
+import org.danielbreves.backend.dto.user.UserDeleteResponseDTO;
+import org.danielbreves.backend.dto.user.UserPasswordUpdateRequestDTO;
+import org.danielbreves.backend.dto.user.UserPasswordUpdateResponseDTO;
+import org.danielbreves.backend.dto.user.UserResponseDTO;
+import org.danielbreves.backend.dto.user.UserUpdateRequestDTO;
+import org.danielbreves.backend.dto.user.UserUpdateResponseDTO;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,58 +17,23 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
 
     public UserService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder, JwtService jwtService
+            PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
     }
 
-    public UserResponseDTO registerUser(UserRequestDTO dto) {
-        User user = new User();
-
-        user.setName(dto.name());
-        user.setUsername(dto.username());
-        user.setEmail(dto.email());
-        user.setPassword(passwordEncoder.encode(dto.password()));
-
-        User savedUser = userRepository.save(user);
+    public UserResponseDTO getCurrentUser(String currentEmail) {
+        User user = findCurrentUser(currentEmail);
 
         return new UserResponseDTO(
-                savedUser.getId(),
-                savedUser.getName(),
-                savedUser.getUsername(),
-                savedUser.getEmail()
-        );
-    }
-
-    public LoginResponseDTO loginUser(LoginRequestDTO request) {
-
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Email ou senha inválidos"));
-
-        boolean passwordMatches = passwordEncoder.matches(
-                request.password(),
-                user.getPassword()
-        );
-
-        if (!passwordMatches) {
-            throw new RuntimeException("Email ou senha inválidos");
-        }
-
-        String token = jwtService.generateToken(user.getEmail());
-
-        return new LoginResponseDTO(
                 user.getId(),
                 user.getName(),
                 user.getUsername(),
-                user.getEmail(),
-                "Login concluído",
-                token
+                user.getEmail()
         );
     }
 
@@ -71,9 +41,7 @@ public class UserService {
             String currentEmail,
             UserUpdateRequestDTO requestDTO
     ) {
-
-        User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = findCurrentUser(currentEmail);
 
         user.setName(requestDTO.name());
         user.setUsername(requestDTO.username());
@@ -92,9 +60,7 @@ public class UserService {
             String currentEmail,
             UserPasswordUpdateRequestDTO requestDTO
     ) {
-
-        User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = findCurrentUser(currentEmail);
 
         boolean passwordMatches = passwordEncoder.matches(
                 requestDTO.currentPassword(),
@@ -115,9 +81,7 @@ public class UserService {
             String currentEmail,
             UserDeleteRequestDTO requestDTO
     ) {
-
-        User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = findCurrentUser(currentEmail);
 
         boolean passwordMatches = passwordEncoder.matches(
                 requestDTO.password(),
@@ -131,5 +95,10 @@ public class UserService {
         userRepository.delete(user);
 
         return new UserDeleteResponseDTO("Account deleted successfully");
+    }
+
+    private User findCurrentUser(String currentEmail) {
+        return userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

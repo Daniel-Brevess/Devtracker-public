@@ -1,12 +1,22 @@
 package org.danielbreves.backend.controller;
 
 import jakarta.validation.Valid;
-import org.danielbreves.backend.dto.user.*;
+import org.danielbreves.backend.dto.user.UserDeleteRequestDTO;
+import org.danielbreves.backend.dto.user.UserDeleteResponseDTO;
+import org.danielbreves.backend.dto.user.UserPasswordUpdateRequestDTO;
+import org.danielbreves.backend.dto.user.UserPasswordUpdateResponseDTO;
+import org.danielbreves.backend.dto.user.UserResponseDTO;
+import org.danielbreves.backend.dto.user.UserUpdateRequestDTO;
+import org.danielbreves.backend.dto.user.UserUpdateResponseDTO;
 import org.danielbreves.backend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 
@@ -18,22 +28,18 @@ import java.security.Principal;
 })
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> registerUser(
-            @RequestBody @Valid UserRequestDTO dto
-    ) {
-        UserResponseDTO response = userService.registerUser(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @PostMapping("/login")
-    public LoginResponseDTO loginUser(
-            @RequestBody @Valid LoginRequestDTO request
-    ) {
-        return userService.loginUser(request);
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getCurrentUser(Principal principal) {
+        UserResponseDTO responseDTO =
+                userService.getCurrentUser(principal.getName());
+
+        return ResponseEntity.ok(responseDTO);
     }
 
     @PutMapping("/update")
@@ -41,11 +47,8 @@ public class UserController {
             @RequestBody @Valid UserUpdateRequestDTO requestDTO,
             Principal principal
     ) {
-
-        String currentEmail = principal.getName();
-
         UserUpdateResponseDTO responseDTO =
-                userService.updateUser(currentEmail, requestDTO);
+                userService.updateUser(principal.getName(), requestDTO);
 
         return ResponseEntity.ok(responseDTO);
     }
@@ -55,10 +58,8 @@ public class UserController {
             @RequestBody @Valid UserPasswordUpdateRequestDTO requestDTO,
             Principal principal
     ) {
-        String currentEmail = principal.getName();
-
         UserPasswordUpdateResponseDTO responseDTO =
-                userService.updatePassword(currentEmail, requestDTO);
+                userService.updatePassword(principal.getName(), requestDTO);
 
         return ResponseEntity.ok(responseDTO);
     }
@@ -68,13 +69,9 @@ public class UserController {
             @RequestBody @Valid UserDeleteRequestDTO requestDTO,
             Principal principal
     ) {
-        String currentEmail = principal.getName();
-
         UserDeleteResponseDTO responseDTO =
-                userService.deleteUser(currentEmail, requestDTO);
+                userService.deleteUser(principal.getName(), requestDTO);
 
         return ResponseEntity.ok(responseDTO);
     }
-
-
 }
