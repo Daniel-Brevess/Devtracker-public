@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
-import api from "../../services/api";
+import { login } from "../../services/auth/authService";
 import { saveToken, saveUser } from "../../services/tokenService";
 import { getApiErrorMessage } from "../../utils/apiError";
 
@@ -76,12 +76,12 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await api.post("/user/login", {
+      const response = await login({
         email: formData.email.trim(),
         password: formData.password,
       });
 
-      const { token, id, name, username, email } = response.data;
+      const { token, id, name, username, email } = response;
 
       if (!token) {
         throw new Error("Token não recebido pelo backend.");

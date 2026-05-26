@@ -1,4 +1,5 @@
 export {
+  getMe,
   getCurrentUser,
   getUserInitials,
   requireCurrentUser,

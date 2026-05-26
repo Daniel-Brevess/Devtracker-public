@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../services/api";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
+import { register } from "../../services/auth/authService";
 import {
   isValidEmail,
   isValidName,
@@ -97,7 +97,7 @@ export default function Register() {
     };
 
     try {
-      await api.post("/user/register", payload);
+      await register(payload);
 
       setSuccessMessage(
         "Account created successfully. Redirecting to login..."

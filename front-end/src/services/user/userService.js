@@ -1,4 +1,11 @@
+import api from "../api";
 import { getUser, getToken, logout } from "../tokenService";
+
+export async function getMe() {
+  const response = await api.get("/user/me");
+
+  return response.data;
+}
 
 export function getCurrentUser() {
   const token = getToken();
