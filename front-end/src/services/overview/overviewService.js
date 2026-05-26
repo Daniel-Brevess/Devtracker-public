@@ -114,7 +114,10 @@ function buildEmptyGitHubStats() {
   return {
     connected: false,
     username: null,
+    privateAccessEnabled: false,
+    totalRepos: 0,
     publicRepos: 0,
+    privateRepos: 0,
     commitsLastSevenDays: 0,
     commitsLastThirtyDays: 0,
     stacks: [],

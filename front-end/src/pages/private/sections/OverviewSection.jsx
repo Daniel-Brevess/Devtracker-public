@@ -166,23 +166,23 @@ export default function OverviewSection() {
             label="Repositories"
             sub={
               overview.github.connected
-                ? `@${overview.github.username}`
+                ? `${overview.github.publicRepos} public / ${overview.github.privateRepos} private`
                 : "GitHub account not connected"
             }
-            value={overview.github.publicRepos}
+            value={overview.github.totalRepos ?? overview.github.publicRepos}
           />
           <StatCard
             colorClassName="text-emerald-400"
             icon={Code2}
             label="Top Stack"
-            sub="Based on public repository languages"
+            sub="Based on authorized repository languages"
             value={overview.github.stacks[0]?.name || "None"}
           />
           <StatCard
             colorClassName="text-amber-400"
             icon={Star}
             label="30d Commits"
-            sub="Public commits tracked from GitHub"
+            sub="Commits tracked from authorized repos"
             value={overview.github.commitsLastThirtyDays}
           />
         </div>
@@ -293,7 +293,7 @@ export default function OverviewSection() {
                   GitHub Stacks
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
-                  Languages detected from public repositories.
+                  Languages detected from authorized repositories.
                 </p>
               </div>
 
@@ -320,7 +320,7 @@ export default function OverviewSection() {
                 ))
               ) : (
                 <p className="text-sm text-zinc-500">
-                  Connect GitHub or publish repositories to see stacks here.
+                  Connect GitHub with repository access to see stacks here.
                 </p>
               )}
             </div>
@@ -333,7 +333,7 @@ export default function OverviewSection() {
                   Recent Repositories
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
-                  Public repositories sorted by recent activity.
+                  Authorized repositories sorted by recent activity.
                 </p>
               </div>
 
@@ -355,7 +355,9 @@ export default function OverviewSection() {
                         {repository.name}
                       </span>
                       <span className="shrink-0 text-xs text-zinc-500">
-                        {repository.mainLanguage || "No stack"}
+                        {repository.privateRepository
+                          ? "Private"
+                          : repository.mainLanguage || "No stack"}
                       </span>
                     </div>
                     <div className="mt-2 flex items-center gap-4 text-xs text-zinc-600">
@@ -366,7 +368,7 @@ export default function OverviewSection() {
                 ))
               ) : (
                 <p className="text-sm text-zinc-500">
-                  No public repositories found for this GitHub account.
+                  No repositories found for this GitHub account.
                 </p>
               )}
             </div>
