@@ -1,4 +1,5 @@
 import { getAllFocuses } from "../focus/focusService";
+import { getGitHubAnalytics } from "../github/githubAnalyticsService";
 import { getAllGoals } from "../goal/goalService";
 import { getAllSessions } from "../session/sessionService";
 import { getTasksByFocus } from "../task/taskService";
@@ -109,11 +110,28 @@ function buildFocusStats(focuses, tasks) {
   };
 }
 
+function buildEmptyGitHubStats() {
+  return {
+    connected: false,
+    username: null,
+    publicRepos: 0,
+    commitsLastSevenDays: 0,
+    commitsLastThirtyDays: 0,
+    stacks: [],
+    repositories: [],
+    frequency: getLastSevenDays().map((date) => ({
+      date,
+      commits: 0,
+    })),
+  };
+}
+
 export async function getOverviewData() {
-  const [focuses, goals, sessions] = await Promise.all([
+  const [focuses, goals, sessions, githubResult] = await Promise.all([
     getAllFocuses(),
     getAllGoals(),
     getAllSessions(),
+    getGitHubAnalytics().catch(() => buildEmptyGitHubStats()),
   ]);
   const taskGroups = await Promise.all(
     focuses.map(async (focus) => getTasksByFocus(focus.id))
@@ -123,6 +141,7 @@ export async function getOverviewData() {
   return {
     focuses: buildFocusStats(focuses, tasks),
     goals: buildGoalStats(goals),
+    github: githubResult || buildEmptyGitHubStats(),
     sessions: buildSessionStats(sessions),
     tasks: buildTaskStats(tasks),
   };

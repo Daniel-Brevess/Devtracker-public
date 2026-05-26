@@ -4,8 +4,12 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
+  Code2,
   Flame,
+  GitBranch,
+  GitCommitHorizontal,
   ListChecks,
+  Star,
   Target,
   Timer,
 } from "lucide-react";
@@ -78,10 +82,14 @@ export default function OverviewSection() {
   }, []);
 
   const maxWeeklyDuration = useMemo(() => {
-    if (!overview?.sessions.weeklyActivity) return 0;
+    if (!overview) return 0;
+
+    const weeklyData = overview.github.connected
+      ? overview.github.frequency
+      : overview.sessions.weeklyActivity;
 
     return Math.max(
-      ...overview.sessions.weeklyActivity.map((day) => day.duration),
+      ...weeklyData.map((day) => day.commits ?? day.duration),
       0
     );
   }, [overview]);
@@ -145,6 +153,38 @@ export default function OverviewSection() {
             sub={`${overview.sessions.total} recorded sessions`}
             value={formatDuration(overview.sessions.totalDuration)}
           />
+          <StatCard
+            colorClassName="text-sky-400"
+            icon={GitCommitHorizontal}
+            label="GitHub Commits"
+            sub="Commits in the last 7 days"
+            value={overview.github.connected ? overview.github.commitsLastSevenDays : "0"}
+          />
+          <StatCard
+            colorClassName="text-indigo-400"
+            icon={GitBranch}
+            label="Repositories"
+            sub={
+              overview.github.connected
+                ? `@${overview.github.username}`
+                : "GitHub account not connected"
+            }
+            value={overview.github.publicRepos}
+          />
+          <StatCard
+            colorClassName="text-emerald-400"
+            icon={Code2}
+            label="Top Stack"
+            sub="Based on public repository languages"
+            value={overview.github.stacks[0]?.name || "None"}
+          />
+          <StatCard
+            colorClassName="text-amber-400"
+            icon={Star}
+            label="30d Commits"
+            sub="Public commits tracked from GitHub"
+            value={overview.github.commitsLastThirtyDays}
+          />
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -152,10 +192,14 @@ export default function OverviewSection() {
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-white">
-                  Weekly Frequency
+                  {overview.github.connected
+                    ? "Commit Frequency"
+                    : "Weekly Frequency"}
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
-                  Session time recorded in the last 7 days.
+                  {overview.github.connected
+                    ? "GitHub commits from the last 7 days."
+                    : "Session time recorded in the last 7 days."}
                 </p>
               </div>
 
@@ -163,10 +207,14 @@ export default function OverviewSection() {
             </div>
 
             <div className="flex h-64 items-end gap-3">
-              {overview.sessions.weeklyActivity.map((day) => {
+              {(overview.github.connected
+                ? overview.github.frequency
+                : overview.sessions.weeklyActivity
+              ).map((day) => {
+                const value = day.commits ?? day.duration;
                 const height =
                   maxWeeklyDuration > 0
-                    ? Math.max((day.duration / maxWeeklyDuration) * 100, 8)
+                    ? Math.max((value / maxWeeklyDuration) * 100, 8)
                     : 8;
 
                 return (
@@ -178,7 +226,7 @@ export default function OverviewSection() {
                       <div
                         style={{ height: `${height}%` }}
                         className={`w-full rounded-t-xl transition ${
-                          day.duration > 0
+                          value > 0
                             ? "bg-blue-500/70"
                             : "bg-white/10"
                         }`}
@@ -190,7 +238,9 @@ export default function OverviewSection() {
                         {formatShortDate(day.date)}
                       </span>
                       <span className="mt-1 block text-[10px] text-zinc-600">
-                        {formatDuration(day.duration)}
+                        {overview.github.connected
+                          ? `${value} commits`
+                          : formatDuration(value)}
                       </span>
                     </div>
                   </div>
@@ -231,6 +281,94 @@ export default function OverviewSection() {
                   <span className="font-mono text-sm text-white">{value}</span>
                 </div>
               ))}
+            </div>
+          </article>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <article className="rounded-3xl border border-white/10 bg-zinc-950/50 p-6 backdrop-blur-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  GitHub Stacks
+                </h2>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Languages detected from public repositories.
+                </p>
+              </div>
+
+              <Code2 className="h-5 w-5 text-blue-400" />
+            </div>
+
+            <div className="space-y-4">
+              {overview.github.stacks.length > 0 ? (
+                overview.github.stacks.map((stack) => (
+                  <div key={stack.name}>
+                    <div className="mb-2 flex items-center justify-between text-sm">
+                      <span className="text-zinc-300">{stack.name}</span>
+                      <span className="font-mono text-zinc-500">
+                        {stack.percentage}%
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-blue-500"
+                        style={{ width: `${stack.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-zinc-500">
+                  Connect GitHub or publish repositories to see stacks here.
+                </p>
+              )}
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-white/10 bg-zinc-950/50 p-6 backdrop-blur-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Recent Repositories
+                </h2>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Public repositories sorted by recent activity.
+                </p>
+              </div>
+
+              <GitBranch className="h-5 w-5 text-blue-400" />
+            </div>
+
+            <div className="space-y-3">
+              {overview.github.repositories.length > 0 ? (
+                overview.github.repositories.map((repository) => (
+                  <a
+                    key={repository.url}
+                    className="block rounded-2xl border border-white/5 bg-black/30 px-4 py-3 transition hover:border-blue-400/30 hover:bg-blue-500/5"
+                    href={repository.url}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="truncate text-sm font-medium text-white">
+                        {repository.name}
+                      </span>
+                      <span className="shrink-0 text-xs text-zinc-500">
+                        {repository.mainLanguage || "No stack"}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-4 text-xs text-zinc-600">
+                      <span>{repository.stars} stars</span>
+                      <span>{repository.forks} forks</span>
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <p className="text-sm text-zinc-500">
+                  No public repositories found for this GitHub account.
+                </p>
+              )}
             </div>
           </article>
         </div>
