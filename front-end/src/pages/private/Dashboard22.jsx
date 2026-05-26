@@ -20,6 +20,7 @@ import { Link } from "react-router-dom";
 
 import api from "../../services/api";
 import { createSession } from "../../services/session/sessionService";
+import { getOverviewData } from "../../services/overview/overviewService";
 import { logout } from "../../services/tokenService";
 import { getCurrentUser, getUserInitials } from "../../services/user/userService";
 import { getApiErrorMessage } from "../../utils/apiError";
@@ -63,6 +64,17 @@ function formatSessionDuration(totalSeconds) {
     .join(":");
 }
 
+function formatProfileHours(totalSeconds) {
+  const safeSeconds = Math.max(0, totalSeconds || 0);
+  const hours = safeSeconds / 3600;
+
+  if (hours < 1) {
+    return `${Math.round(safeSeconds / 60)}m`;
+  }
+
+  return `${hours.toFixed(hours >= 10 ? 0 : 1)}h`;
+}
+
 function getSessionElapsedSeconds(session) {
   if (!session?.startedAt) return 0;
 
@@ -91,6 +103,8 @@ export default function Dashboard2() {
   const userInitials = getUserInitials();
 
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
+  const [profileStats, setProfileStats] = useState(null);
+  const [isProfileStatsLoading, setIsProfileStatsLoading] = useState(false);
   const [isSettingsCardOpen, setIsSettingsCardOpen] = useState(false);
   const [isSessionCardOpen, setIsSessionCardOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -201,6 +215,43 @@ export default function Dashboard2() {
       window.clearInterval(intervalId);
     };
   }, [activeSession, finishActiveSession, isSavingSession]);
+
+  const loadProfileStats = useCallback(async () => {
+    if (profileStats || isProfileStatsLoading) return;
+
+    setIsProfileStatsLoading(true);
+
+    try {
+      const overviewData = await getOverviewData();
+
+      setProfileStats({
+        commits: overviewData.github.commitsLastSevenDays,
+        repositories:
+          overviewData.github.totalRepos ?? overviewData.github.publicRepos,
+        sessionDuration: overviewData.sessions.totalDuration,
+        streak: overviewData.streak.currentStreak,
+      });
+    } catch {
+      setProfileStats({
+        commits: 0,
+        repositories: 0,
+        sessionDuration: 0,
+        streak: 0,
+      });
+    } finally {
+      setIsProfileStatsLoading(false);
+    }
+  }, [isProfileStatsLoading, profileStats]);
+
+  function handleProfileCardToggle() {
+    const nextIsOpen = !isProfileCardOpen;
+
+    setIsProfileCardOpen(nextIsOpen);
+
+    if (nextIsOpen) {
+      loadProfileStats();
+    }
+  }
 
   function handleLogout() {
     logout();
@@ -647,9 +698,7 @@ export default function Dashboard2() {
             <div ref={profileCardRef} className="relative">
               <button
                 type="button"
-                onClick={() =>
-                  setIsProfileCardOpen((currentState) => !currentState)
-                }
+                onClick={handleProfileCardToggle}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-gradient-to-tr from-blue-500 to-violet-500 p-[2px] transition-all hover:scale-[1.03]"
               >
                 <div className="flex h-full w-full items-center justify-center rounded-full bg-zinc-950 text-xs font-bold text-white">
@@ -677,11 +726,26 @@ export default function Dashboard2() {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-white/5 bg-black/40 p-3">
-                    <p className="text-xs leading-relaxed text-zinc-500">
-                      Profile overview. More account details and profile
-                      settings will be available soon.
-                    </p>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {[
+                      ["Streak", `${profileStats?.streak ?? 0}d`],
+                      ["Commits", profileStats?.commits ?? 0],
+                      ["Repos", profileStats?.repositories ?? 0],
+                      [
+                        "Sessions",
+                        formatProfileHours(profileStats?.sessionDuration),
+                      ],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="rounded-2xl border border-white/5 bg-black/40 p-3"
+                      >
+                        <p className="text-[11px] text-zinc-600">{label}</p>
+                        <p className="mt-1 truncate text-lg font-semibold text-white">
+                          {isProfileStatsLoading ? "--" : value}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
