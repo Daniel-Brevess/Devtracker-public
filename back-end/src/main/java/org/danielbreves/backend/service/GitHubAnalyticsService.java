@@ -34,11 +34,16 @@ public class GitHubAnalyticsService {
     private static final int STACK_LIMIT = 5;
 
     private final UserRepository userRepository;
+    private final GitHubTokenCryptoService gitHubTokenCryptoService;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public GitHubAnalyticsService(UserRepository userRepository) {
+    public GitHubAnalyticsService(
+            UserRepository userRepository,
+            GitHubTokenCryptoService gitHubTokenCryptoService
+    ) {
         this.userRepository = userRepository;
+        this.gitHubTokenCryptoService = gitHubTokenCryptoService;
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
     }
@@ -55,23 +60,34 @@ public class GitHubAnalyticsService {
         }
 
         try {
-            return buildAnalytics(user.getGithubUsername());
+            String accessToken =
+                    gitHubTokenCryptoService.decrypt(user.getGithubAccessToken());
+
+            return buildAnalytics(user.getGithubUsername(), accessToken);
         } catch (RuntimeException exception) {
             return GitHubAnalyticsResponseDTO.disconnected();
         }
     }
 
-    private GitHubAnalyticsResponseDTO buildAnalytics(String username) {
-        JsonNode repositories = requestRepositories(username);
+    private GitHubAnalyticsResponseDTO buildAnalytics(
+            String username,
+            String accessToken
+    ) {
+        boolean privateAccessEnabled =
+                accessToken != null && !accessToken.isBlank();
+        JsonNode repositories = requestRepositories(username, accessToken);
         List<JsonNode> selectedRepositories = selectRepositories(repositories);
         List<GitHubRepositoryStatsDTO> repositoryStats =
                 buildRepositoryStats(selectedRepositories);
         List<GitHubLanguageStatsDTO> stacks =
-                buildLanguageStats(username, selectedRepositories);
+                buildLanguageStats(selectedRepositories, accessToken);
         Map<String, Integer> commitCountByDate =
-                buildCommitCountByDate(username, selectedRepositories);
+                buildCommitCountByDate(username, selectedRepositories, accessToken);
         List<GitHubCommitFrequencyDTO> frequency =
                 buildSevenDayFrequency(commitCountByDate);
+        int totalRepos = repositories.size();
+        int privateRepos = countRepositoriesByVisibility(repositories, true);
+        int publicRepos = countRepositoriesByVisibility(repositories, false);
 
         int commitsLastSevenDays = frequency.stream()
                 .mapToInt(GitHubCommitFrequencyDTO::commits)
@@ -83,7 +99,10 @@ public class GitHubAnalyticsService {
         return new GitHubAnalyticsResponseDTO(
                 true,
                 username,
-                repositories.size(),
+                privateAccessEnabled,
+                totalRepos,
+                publicRepos,
+                privateRepos,
                 commitsLastSevenDays,
                 commitsLastThirtyDays,
                 stacks,
@@ -92,7 +111,25 @@ public class GitHubAnalyticsService {
         );
     }
 
-    private JsonNode requestRepositories(String username) {
+    private JsonNode requestRepositories(String username, String accessToken) {
+        if (accessToken != null && !accessToken.isBlank()) {
+            URI uri = UriComponentsBuilder
+                    .fromUriString(GITHUB_API_URL + "/user/repos")
+                    .queryParam("visibility", "all")
+                    .queryParam(
+                            "affiliation",
+                            "owner,collaborator,organization_member"
+                    )
+                    .queryParam("sort", "updated")
+                    .queryParam("direction", "desc")
+                    .queryParam("per_page", 100)
+                    .encode()
+                    .build()
+                    .toUri();
+
+            return sendGitHubRequest(uri, accessToken);
+        }
+
         URI uri = UriComponentsBuilder
                 .fromUriString(GITHUB_API_URL + "/users/{username}/repos")
                 .queryParam("sort", "updated")
@@ -102,7 +139,7 @@ public class GitHubAnalyticsService {
                 .buildAndExpand(username)
                 .toUri();
 
-        return sendGitHubRequest(uri);
+        return sendGitHubRequest(uri, null);
     }
 
     private List<JsonNode> selectRepositories(JsonNode repositories) {
@@ -130,6 +167,7 @@ public class GitHubAnalyticsService {
                         repository.path("name").asText(),
                         repository.path("html_url").asText(),
                         nullableText(repository.path("language")),
+                        repository.path("private").asBoolean(false),
                         repository.path("stargazers_count").asInt(0),
                         repository.path("forks_count").asInt(0),
                         repository.path("updated_at").asText()
@@ -138,14 +176,13 @@ public class GitHubAnalyticsService {
     }
 
     private List<GitHubLanguageStatsDTO> buildLanguageStats(
-            String username,
-            List<JsonNode> repositories
+            List<JsonNode> repositories,
+            String accessToken
     ) {
         Map<String, Long> bytesByLanguage = new HashMap<>();
 
         for (JsonNode repository : repositories) {
-            String repositoryName = repository.path("name").asText();
-            JsonNode languages = requestRepositoryLanguages(username, repositoryName);
+            JsonNode languages = requestRepositoryLanguages(repository, accessToken);
 
             languages.fields().forEachRemaining(language -> bytesByLanguage.merge(
                     language.getKey(),
@@ -174,21 +211,23 @@ public class GitHubAnalyticsService {
     }
 
     private JsonNode requestRepositoryLanguages(
-            String username,
-            String repositoryName
+            JsonNode repository,
+            String accessToken
     ) {
+        String[] ownerAndRepository = resolveOwnerAndRepository(repository);
         URI uri = UriComponentsBuilder
                 .fromUriString(GITHUB_API_URL + "/repos/{username}/{repository}/languages")
                 .encode()
-                .buildAndExpand(username, repositoryName)
+                .buildAndExpand(ownerAndRepository[0], ownerAndRepository[1])
                 .toUri();
 
-        return sendGitHubRequest(uri);
+        return sendGitHubRequest(uri, accessToken);
     }
 
     private Map<String, Integer> buildCommitCountByDate(
             String username,
-            List<JsonNode> repositories
+            List<JsonNode> repositories,
+            String accessToken
     ) {
         Map<String, Integer> commitCountByDate = new LinkedHashMap<>();
         String since = OffsetDateTime
@@ -197,11 +236,11 @@ public class GitHubAnalyticsService {
                 .toString();
 
         for (JsonNode repository : repositories) {
-            String repositoryName = repository.path("name").asText();
             JsonNode commits = requestRepositoryCommits(
-                    username,
-                    repositoryName,
-                    since
+                username,
+                    repository,
+                    since,
+                    accessToken
             );
 
             for (JsonNode commit : commits) {
@@ -225,19 +264,21 @@ public class GitHubAnalyticsService {
 
     private JsonNode requestRepositoryCommits(
             String username,
-            String repositoryName,
-            String since
+            JsonNode repository,
+            String since,
+            String accessToken
     ) {
+        String[] ownerAndRepository = resolveOwnerAndRepository(repository);
         URI uri = UriComponentsBuilder
                 .fromUriString(GITHUB_API_URL + "/repos/{username}/{repository}/commits")
                 .queryParam("author", username)
                 .queryParam("since", since)
                 .queryParam("per_page", 100)
                 .encode()
-                .buildAndExpand(username, repositoryName)
+                .buildAndExpand(ownerAndRepository[0], ownerAndRepository[1])
                 .toUri();
 
-        return sendGitHubRequest(uri);
+        return sendGitHubRequest(uri, accessToken);
     }
 
     private List<GitHubCommitFrequencyDTO> buildSevenDayFrequency(
@@ -258,18 +299,21 @@ public class GitHubAnalyticsService {
         return frequency;
     }
 
-    private JsonNode sendGitHubRequest(URI uri) {
-        HttpRequest request = HttpRequest.newBuilder()
+    private JsonNode sendGitHubRequest(URI uri, String accessToken) {
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(uri)
                 .header("Accept", "application/vnd.github+json")
                 .header("X-GitHub-Api-Version", "2022-11-28")
                 .header("User-Agent", "DevTracker")
-                .GET()
-                .build();
+                .GET();
+
+        if (accessToken != null && !accessToken.isBlank()) {
+            requestBuilder.header("Authorization", "Bearer " + accessToken);
+        }
 
         try {
             HttpResponse<String> response = httpClient.send(
-                    request,
+                    requestBuilder.build(),
                     HttpResponse.BodyHandlers.ofString()
             );
 
@@ -296,5 +340,35 @@ public class GitHubAnalyticsService {
         }
 
         return node.asText();
+    }
+
+    private int countRepositoriesByVisibility(
+            JsonNode repositories,
+            boolean privateRepository
+    ) {
+        int total = 0;
+
+        for (JsonNode repository : repositories) {
+            if (repository.path("private").asBoolean(false) == privateRepository) {
+                total += 1;
+            }
+        }
+
+        return total;
+    }
+
+    private String[] resolveOwnerAndRepository(JsonNode repository) {
+        String fullName = repository.path("full_name").asText("");
+
+        if (fullName.contains("/")) {
+            return fullName.split("/", 2);
+        }
+
+        String owner = repository
+                .path("owner")
+                .path("login")
+                .asText("");
+
+        return new String[] { owner, repository.path("name").asText() };
     }
 }

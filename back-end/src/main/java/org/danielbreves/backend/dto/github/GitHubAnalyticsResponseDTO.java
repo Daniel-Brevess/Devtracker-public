@@ -5,7 +5,10 @@ import java.util.List;
 public record GitHubAnalyticsResponseDTO(
         boolean connected,
         String username,
+        boolean privateAccessEnabled,
+        int totalRepos,
         int publicRepos,
+        int privateRepos,
         int commitsLastSevenDays,
         int commitsLastThirtyDays,
         List<GitHubLanguageStatsDTO> stacks,
@@ -16,6 +19,9 @@ public record GitHubAnalyticsResponseDTO(
         return new GitHubAnalyticsResponseDTO(
                 false,
                 null,
+                false,
+                0,
+                0,
                 0,
                 0,
                 0,
