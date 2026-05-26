@@ -143,8 +143,12 @@ export default function OverviewSection() {
             colorClassName="text-orange-400"
             icon={Flame}
             label="Current Streak"
-            sub={`${overview.sessions.activeDaysLastSeven} active days this week`}
-            value={`${overview.sessions.currentStreak}d`}
+            sub={
+              overview.github.connected
+                ? `${overview.streak.activeDaysLastSeven} commit days this week`
+                : `${overview.streak.activeDaysLastSeven} active days this week`
+            }
+            value={`${overview.streak.currentStreak}d`}
           />
           <StatCard
             colorClassName="text-violet-400"

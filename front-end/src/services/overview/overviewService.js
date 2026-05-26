@@ -129,8 +129,22 @@ function buildEmptyGitHubStats() {
   };
 }
 
+function buildCommitStats(github) {
+  const activeDateKeys = new Set(
+    github.frequency
+      .filter((day) => day.commits > 0)
+      .map((day) => day.date)
+  );
+
+  return {
+    activeDaysLastSeven: github.frequency.filter((day) => day.commits > 0)
+      .length,
+    currentStreak: getCurrentStreak(activeDateKeys),
+  };
+}
+
 export async function getOverviewData() {
-  const [focuses, goals, sessions, githubResult] = await Promise.all([
+  const [focuses, goals, sessionList, githubResult] = await Promise.all([
     getAllFocuses(),
     getAllGoals(),
     getAllSessions(),
@@ -140,12 +154,21 @@ export async function getOverviewData() {
     focuses.map(async (focus) => getTasksByFocus(focus.id))
   );
   const tasks = taskGroups.flat();
+  const github = githubResult || buildEmptyGitHubStats();
+  const sessions = buildSessionStats(sessionList);
+  const streak = github.connected
+    ? buildCommitStats(github)
+    : {
+        activeDaysLastSeven: sessions.activeDaysLastSeven,
+        currentStreak: sessions.currentStreak,
+      };
 
   return {
     focuses: buildFocusStats(focuses, tasks),
     goals: buildGoalStats(goals),
-    github: githubResult || buildEmptyGitHubStats(),
-    sessions: buildSessionStats(sessions),
+    github,
+    sessions,
+    streak,
     tasks: buildTaskStats(tasks),
   };
 }
