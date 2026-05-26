@@ -1,6 +1,7 @@
 package org.danielbreves.backend.entity;
 
 import jakarta.persistence.*;
+import org.danielbreves.backend.entity.enums.AuthProvider;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -21,6 +22,12 @@ public class User implements Serializable {
     private String password;
     @Column(unique = true)
     private String email;
+    @Column(unique = true)
+    private String githubId;
+    private String githubUsername;
+    private String avatarUrl;
+    @Enumerated(EnumType.STRING)
+    private AuthProvider authProvider;
     private Date createdAt;
 
     public User() {
@@ -71,6 +78,45 @@ public class User implements Serializable {
 
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public String getGithubId() {
+        return githubId;
+    }
+
+    public void setGithubId(String githubId) {
+        this.githubId = githubId;
+    }
+
+    public String getGithubUsername() {
+        return githubUsername;
+    }
+
+    public void setGithubUsername(String githubUsername) {
+        this.githubUsername = githubUsername;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public AuthProvider getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(AuthProvider authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (authProvider == null) {
+            authProvider = AuthProvider.LOCAL;
+        }
     }
 
     @Override
