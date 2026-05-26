@@ -43,6 +43,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final GitHubTokenCryptoService gitHubTokenCryptoService;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
@@ -61,11 +62,13 @@ public class AuthService {
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,
+            GitHubTokenCryptoService gitHubTokenCryptoService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.gitHubTokenCryptoService = gitHubTokenCryptoService;
         this.objectMapper = new ObjectMapper();
         this.httpClient = HttpClient.newHttpClient();
     }
@@ -135,7 +138,7 @@ public class AuthService {
                 .fromUriString(GITHUB_AUTHORIZE_URL)
                 .queryParam("client_id", githubClientId)
                 .queryParam("redirect_uri", githubRedirectUri)
-                .queryParam("scope", "read:user user:email")
+                .queryParam("scope", "read:user user:email repo")
                 .queryParam("state", state)
                 .build()
                 .toUriString();
@@ -144,12 +147,17 @@ public class AuthService {
     public String handleGitHubCallback(String code) {
         validateGitHubOAuthConfiguration();
 
-        String accessToken = requestGitHubAccessToken(code);
-        GitHubUserDTO gitHubUser = requestGitHubUser(accessToken);
-        String email = resolveGitHubEmail(gitHubUser, accessToken);
+        GitHubAccessTokenResponse accessTokenResponse =
+                requestGitHubAccessToken(code);
+        GitHubUserDTO gitHubUser = requestGitHubUser(accessTokenResponse.token());
+        String email = resolveGitHubEmail(
+                gitHubUser,
+                accessTokenResponse.token()
+        );
 
         User user = userRepository.findByGithubId(String.valueOf(gitHubUser.id()))
                 .orElseGet(() -> createGitHubUser(gitHubUser, email));
+        updateGitHubToken(user, accessTokenResponse);
 
         String token = jwtService.generateToken(user.getEmail());
 
@@ -170,7 +178,7 @@ public class AuthService {
                 .toUriString();
     }
 
-    private String requestGitHubAccessToken(String code) {
+    private GitHubAccessTokenResponse requestGitHubAccessToken(String code) {
         String form = "client_id=" + encode(githubClientId) +
                 "&client_secret=" + encode(githubClientSecret) +
                 "&code=" + encode(code) +
@@ -185,12 +193,16 @@ public class AuthService {
 
         JsonNode response = sendJsonRequest(request);
         JsonNode accessTokenNode = response.get("access_token");
+        JsonNode scopeNode = response.get("scope");
 
         if (accessTokenNode == null || accessTokenNode.asText().isBlank()) {
             throw new RuntimeException("GitHub access token was not received");
         }
 
-        return accessTokenNode.asText();
+        return new GitHubAccessTokenResponse(
+                accessTokenNode.asText(),
+                scopeNode == null ? "" : scopeNode.asText("")
+        );
     }
 
     private GitHubUserDTO requestGitHubUser(String accessToken) {
@@ -268,6 +280,18 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    private void updateGitHubToken(
+            User user,
+            GitHubAccessTokenResponse accessTokenResponse
+    ) {
+        user.setGithubAccessToken(
+                gitHubTokenCryptoService.encrypt(accessTokenResponse.token())
+        );
+        user.setGithubTokenScope(accessTokenResponse.scope());
+
+        userRepository.save(user);
+    }
+
     private String resolveGitHubName(GitHubUserDTO gitHubUser) {
         if (gitHubUser.name() != null && !gitHubUser.name().isBlank()) {
             return gitHubUser.name();
@@ -315,4 +339,9 @@ public class AuthService {
     private String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
+
+    private record GitHubAccessTokenResponse(
+            String token,
+            String scope
+    ) {}
 }

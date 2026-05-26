@@ -26,6 +26,9 @@ public class User implements Serializable {
     private String githubId;
     private String githubUsername;
     private String avatarUrl;
+    @Column(length = 2048)
+    private String githubAccessToken;
+    private String githubTokenScope;
     @Enumerated(EnumType.STRING)
     private AuthProvider authProvider;
     private Date createdAt;
@@ -102,6 +105,22 @@ public class User implements Serializable {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getGithubAccessToken() {
+        return githubAccessToken;
+    }
+
+    public void setGithubAccessToken(String githubAccessToken) {
+        this.githubAccessToken = githubAccessToken;
+    }
+
+    public String getGithubTokenScope() {
+        return githubTokenScope;
+    }
+
+    public void setGithubTokenScope(String githubTokenScope) {
+        this.githubTokenScope = githubTokenScope;
     }
 
     public AuthProvider getAuthProvider() {
