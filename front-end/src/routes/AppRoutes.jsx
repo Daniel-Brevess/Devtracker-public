@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "../pages/public/LandingPage";
 import Register from "../pages/public/Register";
 import Login from "../pages/public/Login";
+import AuthCallback from "../pages/public/AuthCallback";
 
 import Dashboard22 from "../pages/private/Dashboard22";
 import ProfileEdit from "../pages/private/ProfileEdit";
@@ -17,6 +18,7 @@ export default function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         <Route
           path="/dashboard"

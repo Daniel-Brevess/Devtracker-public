@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
-import { login } from "../../services/auth/authService";
+import { login, startGitHubAuth } from "../../services/auth/authService";
 import { saveToken, saveUser } from "../../services/tokenService";
 import { getApiErrorMessage } from "../../utils/apiError";
 
@@ -22,7 +22,8 @@ export default function Login() {
 
   const handleGithubLogin = () => {
     setSubmitError("");
-    setGithubMessage("Login com GitHub ainda está em desenvolvimento.");
+    setGithubMessage("");
+    startGitHubAuth();
   };
 
   function handleChange(event) {

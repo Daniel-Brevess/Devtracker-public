@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
-import { register } from "../../services/auth/authService";
+import { register, startGitHubAuth } from "../../services/auth/authService";
 import {
   isValidEmail,
   isValidName,
@@ -31,7 +31,8 @@ export default function Register() {
   const handleGithubRegister = () => {
     setSubmitError("");
     setSuccessMessage("");
-    setGithubMessage("Registration with GitHub is still under development.");
+    setGithubMessage("");
+    startGitHubAuth();
   };
 
   function handleChange(event) {

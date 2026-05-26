@@ -19,3 +19,7 @@ export async function register({ name, username, email, password }) {
 
   return response.data;
 }
+
+export function startGitHubAuth() {
+  window.location.href = "http://localhost:8080/auth/github";
+}
