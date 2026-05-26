@@ -36,7 +36,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers(
+                                "/auth/register",
+                                "/auth/login",
+                                "/auth/github",
+                                "/auth/github/callback"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

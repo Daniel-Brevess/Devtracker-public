@@ -33,7 +33,10 @@ public class UserService {
                 user.getId(),
                 user.getName(),
                 user.getUsername(),
-                user.getEmail()
+                user.getEmail(),
+                user.getGithubUsername(),
+                user.getAvatarUrl(),
+                user.getAuthProvider()
         );
     }
 
