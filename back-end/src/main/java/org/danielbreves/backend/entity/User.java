@@ -149,6 +149,10 @@ public class User implements Serializable {
         if (tokenVersion == null) {
             tokenVersion = 0L;
         }
+
+        if (createdAt == null) {
+            createdAt = new Date();
+        }
     }
 
     @Override
