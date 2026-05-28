@@ -1,11 +1,13 @@
 package org.danielbreves.backend.controller;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import org.danielbreves.backend.dto.user.LoginRequestDTO;
 import org.danielbreves.backend.dto.user.LoginResponseDTO;
 import org.danielbreves.backend.dto.user.UserRequestDTO;
 import org.danielbreves.backend.dto.user.UserResponseDTO;
 import org.danielbreves.backend.service.AuthService;
+import org.danielbreves.backend.service.RateLimitService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -31,17 +33,36 @@ import java.time.Duration;
 public class AuthController {
 
     private static final String GITHUB_STATE_COOKIE = "devtracker_oauth_state";
+    private static final int LOGIN_MAX_ATTEMPTS = 5;
+    private static final int REGISTER_MAX_ATTEMPTS = 3;
+    private static final Duration LOGIN_RATE_LIMIT_WINDOW =
+            Duration.ofMinutes(1);
+    private static final Duration REGISTER_RATE_LIMIT_WINDOW =
+            Duration.ofMinutes(10);
 
     private final AuthService authService;
+    private final RateLimitService rateLimitService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(
+            AuthService authService,
+            RateLimitService rateLimitService
+    ) {
         this.authService = authService;
+        this.rateLimitService = rateLimitService;
     }
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> registerUser(
-            @RequestBody @Valid UserRequestDTO dto
+            @RequestBody @Valid UserRequestDTO dto,
+            HttpServletRequest servletRequest
     ) {
+        rateLimitService.check(
+                "auth-register",
+                buildRateLimitIdentifier(servletRequest, dto.email()),
+                REGISTER_MAX_ATTEMPTS,
+                REGISTER_RATE_LIMIT_WINDOW
+        );
+
         UserResponseDTO response = authService.registerUser(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -49,8 +70,16 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> loginUser(
-            @RequestBody @Valid LoginRequestDTO request
+            @RequestBody @Valid LoginRequestDTO request,
+            HttpServletRequest servletRequest
     ) {
+        rateLimitService.check(
+                "auth-login",
+                buildRateLimitIdentifier(servletRequest, request.email()),
+                LOGIN_MAX_ATTEMPTS,
+                LOGIN_RATE_LIMIT_WINDOW
+        );
+
         LoginResponseDTO response = authService.loginUser(request);
 
         return ResponseEntity.ok(response);
@@ -123,5 +152,22 @@ public class AuthController {
                 .location(URI.create(redirectUrl))
                 .header(HttpHeaders.SET_COOKIE, clearedStateCookie.toString())
                 .build();
+    }
+
+    private String buildRateLimitIdentifier(
+            HttpServletRequest request,
+            String email
+    ) {
+        return resolveClientIp(request) + ":" + email;
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+
+        return request.getRemoteAddr();
     }
 }
