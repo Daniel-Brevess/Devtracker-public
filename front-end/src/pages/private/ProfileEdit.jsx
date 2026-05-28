@@ -144,7 +144,7 @@ export default function EditProfile() {
 
               <div className="flex items-center gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400">
-                   {/* Usando o mesmo ícone customizado do GitHub se necessário, ou apenas um ícone genérico */}
+                   {/* Uses the same custom GitHub icon if needed, or a generic icon. */}
                    <User className="h-5 w-5" />
                 </div>
                 <div className="flex-1">

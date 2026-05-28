@@ -88,14 +88,14 @@ export default function Login() {
       const { token } = response;
 
       if (!token) {
-        throw new Error("Token não recebido pelo backend.");
+        throw new Error("Token was not received from the backend.");
       }
 
       await finishAuthentication(token);
 
       navigate("/dashboard22");
     } catch (error) {
-      setSubmitError(getApiErrorMessage(error, "Email ou senha inválidos."));
+      setSubmitError(getApiErrorMessage(error, "Invalid email or password."));
     } finally {
       setIsLoading(false);
     }
@@ -203,7 +203,7 @@ export default function Login() {
               type="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder="Password"
               className={inputClass("password")}
             />
             {errors.password && (

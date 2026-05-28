@@ -100,10 +100,10 @@ public class AuthService {
 
     public LoginResponseDTO loginUser(LoginRequestDTO request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UnauthorizedException("Email ou senha invalidos"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
 
         if (user.getPassword() == null || !isLocalUser(user)) {
-            throw new UnauthorizedException("Email ou senha invalidos");
+            throw new UnauthorizedException("Invalid email or password");
         }
 
         boolean passwordMatches = passwordEncoder.matches(
@@ -112,7 +112,7 @@ public class AuthService {
         );
 
         if (!passwordMatches) {
-            throw new UnauthorizedException("Email ou senha invalidos");
+            throw new UnauthorizedException("Invalid email or password");
         }
 
         String token = jwtService.generateToken(user);

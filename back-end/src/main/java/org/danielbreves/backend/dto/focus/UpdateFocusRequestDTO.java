@@ -6,11 +6,11 @@ import jakarta.validation.constraints.Size;
 
 public record UpdateFocusRequestDTO(
 
-        @NotNull(message = "O id do focus e obrigatorio")
+        @NotNull(message = "Focus id is required")
         Long id,
 
-        @NotBlank(message = "O titulo e obrigatorio")
-        @Size(max = 255, message = "O titulo deve ter no maximo 255 caracteres")
+        @NotBlank(message = "Title is required")
+        @Size(max = 255, message = "Title must have at most 255 characters")
         String title
 
 ) {}

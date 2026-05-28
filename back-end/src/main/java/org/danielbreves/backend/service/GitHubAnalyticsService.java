@@ -58,7 +58,7 @@ public class GitHubAnalyticsService {
 
     public GitHubAnalyticsResponseDTO getAnalytics(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new NotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
         GitHubAnalyticsResponseDTO cachedAnalytics = getCachedAnalytics(user);
 
         if (cachedAnalytics != null) {

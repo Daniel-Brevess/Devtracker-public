@@ -35,16 +35,16 @@ export default function Profile() {
 
   const bio =
     user?.bio ||
-    "Nenhuma bio adicionada ainda. Edite seu perfil para adicionar uma descrição.";
+    "No bio added yet. Edit your profile to add a description.";
 
-  const location = user?.location || "Localização não adicionada";
-  const website = user?.website || "Website não adicionado";
+  const location = user?.location || "Location not added";
+  const website = user?.website || "Website not added";
   const joinedAt = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString("pt-BR", {
+    ? new Date(user.createdAt).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
-    : "Data de entrada indisponível";
+    : "Join date unavailable";
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -91,7 +91,7 @@ export default function Profile() {
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
                 <h1 className="text-4xl font-bold">
-                  {user?.name || "Usuário"}
+                  {user?.name || "User"}
                 </h1>
 
                 <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
@@ -176,7 +176,7 @@ export default function Profile() {
                 </div>
               ) : (
                 <p className="text-sm text-zinc-500">
-                  Você ainda não adicionou nenhuma stack.
+                  You have not added any stacks yet.
                 </p>
               )}
             </div>
@@ -197,7 +197,7 @@ export default function Profile() {
                       className="flex items-center gap-4 rounded-2xl border border-white/5 bg-black/40 p-4 transition hover:border-white/20"
                     >
                       <div className="text-2xl">
-                        {achievement.icon || "🏆"}
+                        {achievement.icon || "Award"}
                       </div>
 
                       <div>
@@ -215,8 +215,8 @@ export default function Profile() {
               ) : (
                 <div className="rounded-2xl border border-white/5 bg-black/40 p-6">
                   <p className="text-sm text-zinc-500">
-                    Você ainda não possui conquistas. Complete sessões,
-                    metas e atividades para desbloquear achievements.
+                    You do not have achievements yet. Complete sessions,
+                    goals and activities to unlock achievements.
                   </p>
                 </div>
               )}
@@ -259,8 +259,8 @@ export default function Profile() {
               ) : (
                 <div className="rounded-2xl border border-white/5 bg-black/40 p-6">
                   <p className="text-sm text-zinc-500">
-                    Nenhuma evolução registrada ainda. Quando você
-                    registrar sessões, tarefas ou metas, elas aparecerão aqui.
+                    No evolution registered yet. When you register sessions,
+                    tasks or goals, they will appear here.
                   </p>
                 </div>
               )}

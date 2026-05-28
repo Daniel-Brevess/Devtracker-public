@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record DeleteFocusRequestDTO(
 
-        @NotNull(message = "O id do focus e obrigatorio")
+        @NotNull(message = "Focus id is required")
         Long id
 
 ) {}

@@ -8,17 +8,17 @@ import org.danielbreves.backend.entity.enums.GoalStatus;
 
 public record UpdateGoalRequestDTO(
 
-        @NotBlank(message = "O titulo e obrigatorio")
-        @Size(max = 255, message = "O titulo deve ter no maximo 255 caracteres")
+        @NotBlank(message = "Title is required")
+        @Size(max = 255, message = "Title must have at most 255 characters")
         String title,
 
-        @Size(max = 255, message = "A descricao deve ter no maximo 255 caracteres")
+        @Size(max = 255, message = "Description must have at most 255 characters")
         String description,
 
-        @NotNull(message = "A dificuldade e obrigatoria")
+        @NotNull(message = "Difficulty is required")
         GoalDifficulty difficulty,
 
-        @NotNull(message = "O status e obrigatorio")
+        @NotNull(message = "Status is required")
         GoalStatus status
 
 ) {}

@@ -6,11 +6,11 @@ import org.danielbreves.backend.entity.enums.SessionType;
 
 public record CreateSessionRequestDTO(
 
-        @NotNull(message = "O tipo da sessao e obrigatorio")
+        @NotNull(message = "Session type is required")
         SessionType type,
 
-        @NotNull(message = "A duracao da sessao e obrigatoria")
-        @PositiveOrZero(message = "A duracao da sessao nao pode ser negativa")
+        @NotNull(message = "Session duration is required")
+        @PositiveOrZero(message = "Session duration cannot be negative")
         Integer duration
 
 ) {}

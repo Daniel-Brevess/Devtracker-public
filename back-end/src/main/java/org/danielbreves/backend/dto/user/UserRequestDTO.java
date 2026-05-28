@@ -7,24 +7,24 @@ import jakarta.validation.constraints.Size;
 
 public record UserRequestDTO(
 
-        @NotBlank(message = "O nome é obrigatório")
-        @Size(min = 2, max = 80, message = "O nome deve ter entre 2 e 80 caracteres")
+        @NotBlank(message = "Name is required")
+        @Size(min = 2, max = 80, message = "Name must be between 2 and 80 characters")
         String name,
 
-        @Size(min = 3, max = 30, message = "O username deve ter entre 3 e 30 caracteres")
+        @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
         @Pattern(
                 regexp = "^[a-zA-Z0-9._]+$",
-                message = "O username só pode conter letras, números, ponto e underline"
+                message = "Username can only contain letters, numbers, dots and underscores"
         )
         String username,
 
-        @NotBlank(message = "O email é obrigatório")
-        @Email(message = "Email inválido")
-        @Size(max = 120, message = "O email deve ter no máximo 120 caracteres")
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email is invalid")
+        @Size(max = 120, message = "Email must have at most 120 characters")
         String email,
 
-        @NotBlank(message = "A senha é obrigatória")
-        @Size(min = 8, max = 72, message = "A senha deve ter entre 8 e 72 caracteres")
+        @NotBlank(message = "Password is required")
+        @Size(min = 8, max = 72, message = "Password must be between 8 and 72 characters")
         @Pattern(
                 regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&.#_-]).+$",
                 message = "The password needs to have: 1 uppercase letter, 1 lowercase letter, 1 number, 1 symbol."

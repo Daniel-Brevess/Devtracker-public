@@ -39,7 +39,7 @@ export function requireCurrentUser() {
 
   if (!user) {
     logout();
-    throw new Error("Usuario nao autenticado.");
+    throw new Error("User is not authenticated.");
   }
 
   return user;
