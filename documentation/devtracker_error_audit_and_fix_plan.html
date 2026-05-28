@@ -185,6 +185,27 @@
         background: #0d1420;
       }
 
+      .fixed {
+        color: #7c8797;
+        text-decoration: line-through;
+        text-decoration-color: var(--low);
+        text-decoration-thickness: 2px;
+      }
+
+      .done-label {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgb(110 231 183 / 0.28);
+        border-radius: 999px;
+        margin-left: 8px;
+        padding: 2px 8px;
+        background: rgb(110 231 183 / 0.1);
+        color: var(--low);
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
       @media print {
         body {
           background: #fff;
@@ -236,8 +257,9 @@
         </p>
         <p>
           Os maiores riscos antes do deploy sao configuracao de producao,
-          segredos no arquivo de propriedades, JWT no front, usuarios GitHub sem
-          senha em fluxos que exigem senha, ausencia de rate limit e uso de
+          segredos no arquivo de propriedades, JWT no front,
+          <span class="fixed">usuarios GitHub sem senha em fluxos que exigem senha</span>
+          <span class="done-label">corrigido</span>, ausencia de rate limit e uso de
           <code>ddl-auto=update</code>.
         </p>
       </section>
@@ -262,7 +284,10 @@
         <ul>
           <li><code>User</code> continua sendo a identidade principal do DevTracker.</li>
           <li><code>authProvider=LOCAL</code>: exige senha local.</li>
-          <li><code>authProvider=GITHUB</code>: nao possui senha local.</li>
+          <li>
+            <span class="fixed"><code>authProvider=GITHUB</code>: nao possui senha local.</span>
+            <span class="done-label">corrigido</span>
+          </li>
           <li>
             Campos GitHub ficam no proprio User ou em uma tabela auxiliar
             <code>github_account</code> com relacao 1:1, se quisermos separar
@@ -288,17 +313,41 @@
           </p>
           <h4>Problema</h4>
           <ul>
-            <li>Usuario GitHub nao deve ter senha local.</li>
-            <li>Fluxos de senha/delete/profile ainda assumem senha em alguns pontos.</li>
-            <li>Login local e login GitHub precisam ter contratos separados.</li>
+            <li>
+              <span class="fixed">Usuario GitHub nao deve ter senha local.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Fluxos de senha/delete/profile ainda assumem senha em alguns pontos.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Login local e login GitHub precisam ter contratos separados.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ul>
           <h4>Plano seguro</h4>
           <ol>
-            <li>Manter entidade <code>User</code> unica com <code>authProvider</code>.</li>
-            <li>Bloquear senha local para usuario GitHub.</li>
-            <li>Separar respostas e mensagens de erro para LOCAL e GITHUB.</li>
-            <li>Garantir que <code>/user/me</code> seja a fonte do usuario logado.</li>
-            <li>Adicionar testes dos fluxos LOCAL e GITHUB antes de mexer no banco.</li>
+            <li>
+              <span class="fixed">Manter entidade <code>User</code> unica com <code>authProvider</code>.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Bloquear senha local para usuario GitHub.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Separar respostas e mensagens de erro para LOCAL e GITHUB.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Garantir que <code>/user/me</code> seja a fonte do usuario logado.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Adicionar testes dos fluxos LOCAL e GITHUB antes de mexer no banco.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ol>
         </article>
 
@@ -312,10 +361,22 @@
           </p>
           <h4>Plano seguro</h4>
           <ol>
-            <li>Bloquear troca de senha para <code>authProvider=GITHUB</code>.</li>
-            <li>Separar delecao de conta local e GitHub.</li>
-            <li>Mostrar mensagem clara no front.</li>
-            <li>Manter login local bloqueado para usuarios GitHub sem senha.</li>
+            <li>
+              <span class="fixed">Bloquear troca de senha para <code>authProvider=GITHUB</code>.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Separar delecao de conta local e GitHub.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Mostrar mensagem clara no front.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Manter login local bloqueado para usuarios GitHub sem senha.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ol>
         </article>
 
@@ -342,13 +403,19 @@
           <h4>Problema</h4>
           <ul>
             <li>Alteracao de email nao exige senha atual.</li>
-            <li>Usuario GitHub nao deve acessar troca de senha local.</li>
+            <li>
+              <span class="fixed">Usuario GitHub nao deve acessar troca de senha local.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>JWT antigo continua valido apos troca de email/senha.</li>
           </ul>
           <h4>Plano seguro</h4>
           <ol>
             <li>Exigir senha atual para alteracoes sensiveis de usuario local.</li>
-            <li>Ocultar ou bloquear troca de senha para usuario GitHub.</li>
+            <li>
+              <span class="fixed">Ocultar ou bloquear troca de senha para usuario GitHub.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>Recarregar usuario por <code>/user/me</code> apos alteracoes.</li>
             <li>Invalidar token antigo quando email/senha mudarem.</li>
           </ol>
@@ -488,7 +555,10 @@
           </ul>
           <h4>Erro de logica</h4>
           <ul>
-            <li>Usuarios GitHub sem senha entram em fluxos que esperam senha.</li>
+            <li>
+              <span class="fixed">Usuarios GitHub sem senha entram em fluxos que esperam senha.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>Troca de email nao exige senha atual.</li>
             <li>PrivateRoute nao valida expiracao do token.</li>
           </ul>
@@ -508,6 +578,10 @@
           <ul>
             <li>JWT antigo continua valido apos troca de email/senha.</li>
             <li>Usuario local em <code>localStorage</code> pode ficar desatualizado.</li>
+            <li>
+              <span class="fixed">Usuario GitHub acessava tela de edicao de perfil e troca de senha local.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ul>
           <h4>Outros erros</h4>
           <ul>
@@ -626,8 +700,14 @@
       <section class="card note">
         <h2>Ordem Recomendada de Correcao</h2>
         <ol>
-          <li>Definir o modelo final de autenticacao: <code>User</code> unico com <code>authProvider</code>.</li>
-          <li>Corrigir usuario GitHub sem senha em profile/delete/password.</li>
+          <li>
+            <span class="fixed">Definir o modelo final de autenticacao: <code>User</code> unico com <code>authProvider</code>.</span>
+            <span class="done-label">corrigido</span>
+          </li>
+          <li>
+            <span class="fixed">Corrigir usuario GitHub sem senha em profile/delete/password.</span>
+            <span class="done-label">corrigido</span>
+          </li>
           <li>Corrigir regras de Profile: email, senha, logout e recarga via <code>/user/me</code>.</li>
           <li>Endurecer JWT sem trocar tudo de uma vez.</li>
           <li>Adicionar rate limit em auth e cache GitHub.</li>
