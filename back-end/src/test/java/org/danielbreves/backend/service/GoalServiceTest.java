@@ -43,6 +43,7 @@ class GoalServiceTest {
         LocalDateTime createdAt = LocalDateTime.now();
 
         when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
+        when(goalRepository.countByIdUser(user.getId())).thenReturn(0L);
         when(goalRepository.save(any(Goal.class))).thenAnswer(invocation -> {
             Goal goal = invocation.getArgument(0);
             return new Goal(

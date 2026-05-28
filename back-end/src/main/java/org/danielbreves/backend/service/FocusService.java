@@ -10,6 +10,7 @@ import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
 import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.exception.NotFoundException;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.FocusRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import java.util.List;
 
 @Service
 public class FocusService {
+
+    private static final int MAX_ACTIVE_FOCUSES_PER_USER = 20;
 
     private final FocusRepository focusRepository;
     private final UserRepository userRepository;
@@ -33,6 +36,7 @@ public class FocusService {
     ) {
         User user = userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        ensureFocusQuota(user);
 
         Focus focus = new Focus(
                 null,
@@ -101,5 +105,13 @@ public class FocusService {
         focusRepository.delete(focus);
 
         return new DeleteFocusResponseDTO("Focus deleted successfully");
+    }
+
+    private void ensureFocusQuota(User user) {
+        if (focusRepository.countByUser(user) >= MAX_ACTIVE_FOCUSES_PER_USER) {
+            throw new ValidationException(
+                    "You can have up to 20 active focuses"
+            );
+        }
     }
 }

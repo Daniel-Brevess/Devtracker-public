@@ -14,5 +14,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findAllByFocus_User(User user);
 
+    long countByFocus(Focus focus);
+
     Optional<Task> findByIdAndFocus(Long id, Focus focus);
 }

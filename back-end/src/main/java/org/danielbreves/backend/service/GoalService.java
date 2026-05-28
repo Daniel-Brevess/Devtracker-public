@@ -9,6 +9,7 @@ import org.danielbreves.backend.dto.goal.UpdateGoalResponseDTO;
 import org.danielbreves.backend.entity.Goal;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.exception.NotFoundException;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.GoalRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import java.util.List;
 
 @Service
 public class GoalService {
+
+    private static final int MAX_ACTIVE_GOALS_PER_USER = 30;
 
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
@@ -34,6 +37,7 @@ public class GoalService {
             CreateGoalRequestDTO requestDTO
     ) {
         User user = getCurrentUser(currentEmail);
+        ensureGoalQuota(user);
 
         Goal goal = new Goal(
                 null,
@@ -132,5 +136,13 @@ public class GoalService {
                 goal.getStatus(),
                 goal.getCreatedAt()
         );
+    }
+
+    private void ensureGoalQuota(User user) {
+        if (goalRepository.countByIdUser(user.getId()) >= MAX_ACTIVE_GOALS_PER_USER) {
+            throw new ValidationException(
+                    "You can have up to 30 active goals"
+            );
+        }
     }
 }

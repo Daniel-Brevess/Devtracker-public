@@ -52,6 +52,7 @@ class TaskServiceTest {
 
         when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
         when(focusRepository.findByIdAndUser(10L, user)).thenReturn(Optional.of(focus));
+        when(taskRepository.countByFocus(focus)).thenReturn(0L);
         when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> {
             Task task = invocation.getArgument(0);
             return new Task(

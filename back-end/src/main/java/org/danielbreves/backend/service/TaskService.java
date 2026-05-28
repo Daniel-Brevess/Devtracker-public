@@ -11,6 +11,7 @@ import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.Task;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.exception.NotFoundException;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.FocusRepository;
 import org.danielbreves.backend.repository.TaskRepository;
 import org.danielbreves.backend.repository.UserRepository;
@@ -20,6 +21,8 @@ import java.util.List;
 
 @Service
 public class TaskService {
+
+    private static final int MAX_ACTIVE_TASKS_PER_FOCUS = 25;
 
     private final TaskRepository taskRepository;
     private final FocusRepository focusRepository;
@@ -45,6 +48,7 @@ public class TaskService {
 
         Focus focus = focusRepository.findByIdAndUser(focusId, user)
                 .orElseThrow(() -> new NotFoundException("Focus not found"));
+        ensureTaskQuota(focus);
 
         Task task = new Task(
                 null,
@@ -168,6 +172,14 @@ public class TaskService {
                 updatedTask.getStatus(),
                 updatedTask.getCreatedAt()
         );
+    }
+
+    private void ensureTaskQuota(Focus focus) {
+        if (taskRepository.countByFocus(focus) >= MAX_ACTIVE_TASKS_PER_FOCUS) {
+            throw new ValidationException(
+                    "A focus can have up to 25 active tasks"
+            );
+        }
     }
 
 }

@@ -37,6 +37,7 @@ class FocusServiceTest {
         LocalDateTime createdAt = LocalDateTime.now();
 
         when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
+        when(focusRepository.countByUser(user)).thenReturn(0L);
         when(focusRepository.save(any(Focus.class))).thenAnswer(invocation -> {
             Focus focus = invocation.getArgument(0);
             return new Focus(10L, focus.getUser(), focus.getTitle(), createdAt);

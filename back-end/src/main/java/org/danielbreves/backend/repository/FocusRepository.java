@@ -11,5 +11,7 @@ public interface FocusRepository extends JpaRepository<Focus, Long> {
 
     List<Focus> findAllByUser(User user);
 
+    long countByUser(User user);
+
     Optional<Focus> findByIdAndUser(Long id, User user);
 }
