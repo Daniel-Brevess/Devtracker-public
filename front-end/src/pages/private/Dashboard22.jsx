@@ -22,7 +22,12 @@ import api from "../../services/api";
 import { createSession } from "../../services/session/sessionService";
 import { getOverviewData } from "../../services/overview/overviewService";
 import { logout } from "../../services/tokenService";
-import { getCurrentUser, getUserInitials } from "../../services/user/userService";
+import {
+  getCurrentUser,
+  getDisplayUsername,
+  getUserInitials,
+  isGitHubUser,
+} from "../../services/user/userService";
 import { getApiErrorMessage } from "../../utils/apiError";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
@@ -101,6 +106,8 @@ export default function Dashboard2() {
 
   const user = getCurrentUser();
   const userInitials = getUserInitials();
+  const isGitHubAccount = isGitHubUser(user);
+  const displayUsername = getDisplayUsername(user);
 
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
   const [profileStats, setProfileStats] = useState(null);
@@ -119,7 +126,7 @@ export default function Dashboard2() {
   );
   const [sessionMessage, setSessionMessage] = useState("");
   const [isSavingSession, setIsSavingSession] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [deleteAccountMessage, setDeleteAccountMessage] = useState("");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const profileCardRef = useRef(null);
@@ -276,7 +283,7 @@ export default function Dashboard2() {
   }
 
   function openDeleteAccountModal() {
-    setDeletePassword("");
+    setDeleteConfirmation("");
     setDeleteAccountMessage("");
     setIsSettingsCardOpen(false);
     setIsAccountOpen(false);
@@ -286,7 +293,7 @@ export default function Dashboard2() {
   function closeDeleteAccountModal() {
     if (isDeletingAccount) return;
 
-    setDeletePassword("");
+    setDeleteConfirmation("");
     setDeleteAccountMessage("");
     setIsDeleteAccountModalOpen(false);
   }
@@ -296,18 +303,24 @@ export default function Dashboard2() {
 
     setDeleteAccountMessage("");
 
-    if (!deletePassword) {
-      setDeleteAccountMessage("Insert your current password.");
+    if (!deleteConfirmation) {
+      setDeleteAccountMessage(
+        isGitHubAccount
+          ? "Type your account email to confirm."
+          : "Insert your current password."
+      );
       return;
     }
+
+    const deletePayload = isGitHubAccount
+      ? { confirmationEmail: deleteConfirmation.trim() }
+      : { password: deleteConfirmation };
 
     setIsDeletingAccount(true);
 
     try {
       await api.delete("/user/delete", {
-        data: {
-          password: deletePassword,
-        },
+        data: deletePayload,
       });
 
       logout();
@@ -316,7 +329,9 @@ export default function Dashboard2() {
       setDeleteAccountMessage(
         getApiErrorMessage(
           error,
-          "The password is not correct. Account could not be deleted."
+          isGitHubAccount
+            ? "The email confirmation does not match. Account could not be deleted."
+            : "The password is not correct. Account could not be deleted."
         )
       );
     } finally {
@@ -521,7 +536,7 @@ export default function Dashboard2() {
           className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-zinc-500 transition-all hover:bg-white/5 hover:text-white"
         >
           <span className="font-mono text-blue-400">{">"}</span>
-          Edit profile
+          {isGitHubAccount ? "Account data" : "Edit profile"}
         </Link>
 
             <button
@@ -592,8 +607,9 @@ export default function Dashboard2() {
                   Delete account
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-                  Enter your current password to permanently delete your
-                  account.
+                  {isGitHubAccount
+                    ? "Type your account email to permanently delete your GitHub-linked account."
+                    : "Enter your current password to permanently delete your account."}
                 </p>
               </div>
 
@@ -611,15 +627,15 @@ export default function Dashboard2() {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm text-zinc-400">
                   <Lock className="h-3 w-3" />
-                  Current Password
+                  {isGitHubAccount ? "Confirmation Email" : "Current Password"}
                 </label>
 
                 <input
-                  name="deletePassword"
-                  type="password"
-                  value={deletePassword}
+                  name="deleteConfirmation"
+                  type={isGitHubAccount ? "email" : "password"}
+                  value={deleteConfirmation}
                   onChange={(event) => {
-                    setDeletePassword(event.target.value);
+                    setDeleteConfirmation(event.target.value);
                     setDeleteAccountMessage("");
                   }}
                   className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-red-500/50"
@@ -721,7 +737,7 @@ export default function Dashboard2() {
                       </h3>
 
                       <p className="mt-1 truncate text-xs text-zinc-500">
-                        @{user?.username || "username"}
+                        @{displayUsername}
                       </p>
                     </div>
                   </div>

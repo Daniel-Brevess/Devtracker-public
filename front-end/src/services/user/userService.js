@@ -18,6 +18,22 @@ export function getCurrentUser() {
   return user;
 }
 
+export function isGitHubUser(user = getCurrentUser()) {
+  return user?.authProvider === "GITHUB";
+}
+
+export function getDisplayUsername(user = getCurrentUser()) {
+  if (!user) {
+    return "username";
+  }
+
+  if (isGitHubUser(user)) {
+    return user.githubUsername || user.username || "github-user";
+  }
+
+  return user.username || "username";
+}
+
 export function requireCurrentUser() {
   const user = getCurrentUser();
 

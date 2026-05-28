@@ -10,7 +10,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { getCurrentUser, getUserInitials } from "../../services/user/userService";
+import {
+  getCurrentUser,
+  getDisplayUsername,
+  getUserInitials,
+  isGitHubUser,
+} from "../../services/user/userService";
 import api from "../../services/api";
 import { saveUser } from "../../services/tokenService";
 import { logout } from "../../services/tokenService";
@@ -21,12 +26,14 @@ import { getApiErrorMessage } from "../../utils/apiError";
 export default function ProfileEdit22() {
   const user = getCurrentUser();
   const userInitials = getUserInitials();
+  const isGitHubAccount = isGitHubUser(user);
+  const displayUsername = getDisplayUsername(user);
   
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
-    username: user?.username || "",
+    username: displayUsername || "",
     email: user?.email || "",
   });
 
@@ -67,6 +74,11 @@ async function handleSubmit(event) {
   event.preventDefault();
 
   setProfileMessage("");
+
+  if (isGitHubAccount) {
+    setProfileMessage("GitHub account data is managed by GitHub.");
+    return;
+  }
 
   const oldEmail = user?.email;
   const newEmail = formData.email.trim();
@@ -114,6 +126,11 @@ async function handleSubmit(event) {
 
   async function handlePasswordSubmit(event) {
     event.preventDefault();
+
+    if (isGitHubAccount) {
+      setPasswordMessage("GitHub accounts do not use a DevTracker password.");
+      return;
+    }
 
     if (!passwordData.currentPassword) {
       setPasswordMessage("Insert your current password.");
@@ -191,9 +208,13 @@ async function handleSubmit(event) {
 
       <main className="relative z-10 mx-auto max-w-3xl px-8 py-12">
         <header className="mb-10">
-          <h1 className="text-3xl font-bold">Edit Profile</h1>
+          <h1 className="text-3xl font-bold">
+            {isGitHubAccount ? "Account Data" : "Edit Profile"}
+          </h1>
           <p className="mt-2 text-zinc-500">
-            Update your account information and security settings.
+            {isGitHubAccount
+              ? "View the profile data connected from GitHub."
+              : "Update your account information and security settings."}
           </p>
         </header>
 
@@ -214,7 +235,7 @@ async function handleSubmit(event) {
                 {formData.name || "User"}
               </h3>
               <p className="mt-1 text-sm text-zinc-500">
-                @{formData.username || "username"}
+                @{displayUsername}
               </p>
             </div>
           </div>
@@ -228,17 +249,27 @@ async function handleSubmit(event) {
           <section className="space-y-6 rounded-[32px] border border-white/10 bg-zinc-950/50 p-8 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-                Account Information
+                {isGitHubAccount ? "Account Data" : "Account Information"}
               </h2>
 
-              <button
-                type="submit"
-                className="flex items-center gap-2 rounded-xl bg-white px-5 py-2 text-sm font-bold text-black transition-all hover:scale-[1.02]"
-              >
-                <Save className="h-4 w-4" />
-                Save Profile
-              </button>
+              {!isGitHubAccount && (
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 rounded-xl bg-white px-5 py-2 text-sm font-bold text-black transition-all hover:scale-[1.02]"
+                >
+                  <Save className="h-4 w-4" />
+                  Save Profile
+                </button>
+              )}
             </div>
+
+            {isGitHubAccount && (
+              <p className="text-sm leading-relaxed text-zinc-500">
+                This account is authenticated by GitHub. Name, username and
+                email changes must be made on GitHub and synced on your next
+                login.
+              </p>
+            )}
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2">
@@ -252,7 +283,8 @@ async function handleSubmit(event) {
                   type="text"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50"
+                  disabled={isGitHubAccount}
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50 disabled:cursor-not-allowed disabled:text-zinc-500"
                 />
               </div>
 
@@ -267,7 +299,8 @@ async function handleSubmit(event) {
                   type="text"
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50"
+                  disabled={isGitHubAccount}
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50 disabled:cursor-not-allowed disabled:text-zinc-500"
                 />
               </div>
             </div>
@@ -283,7 +316,8 @@ async function handleSubmit(event) {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50"
+                disabled={isGitHubAccount}
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50 disabled:cursor-not-allowed disabled:text-zinc-500"
               />
             </div>
 
@@ -302,23 +336,26 @@ async function handleSubmit(event) {
               </h2>
 
               <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-500">
-                Password changes are handled separately to keep your account
-                update flow safer and more predictable.
+                {isGitHubAccount
+                  ? "This account does not use a DevTracker password. Access is handled by GitHub."
+                  : "Password changes are handled separately to keep your account update flow safer and more predictable."}
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                setIsPasswordCardOpen((currentState) => !currentState)
-              }
-              className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white transition-all hover:border-blue-500/40 hover:bg-blue-500/10"
-            >
-              Change password
-            </button>
+            {!isGitHubAccount && (
+              <button
+                type="button"
+                onClick={() =>
+                  setIsPasswordCardOpen((currentState) => !currentState)
+                }
+                className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white transition-all hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Change password
+              </button>
+            )}
           </div>
 
-          {isPasswordCardOpen && (
+          {!isGitHubAccount && isPasswordCardOpen && (
             <form
               onSubmit={handlePasswordSubmit}
               className="mt-8 space-y-6 rounded-[28px] border border-white/10 bg-black/40 p-6"
