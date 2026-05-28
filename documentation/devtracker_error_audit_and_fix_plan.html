@@ -394,7 +394,10 @@
             <li>Primeiro reduzir expiracao e validar expiracao no front.</li>
             <li>Depois avaliar refresh token ou cookie HttpOnly.</li>
             <li>Adicionar token version / updatedAt para invalidar apos troca de senha.</li>
-            <li>Manter backend como fonte final de autorizacao.</li>
+            <li>
+              <span class="fixed">Manter backend como fonte final de autorizacao.</span>
+              <span class="done-label">corrigido no fluxo de login</span>
+            </li>
           </ol>
         </article>
 
@@ -559,6 +562,10 @@
               <span class="fixed">Usuarios GitHub sem senha entram em fluxos que esperam senha.</span>
               <span class="done-label">corrigido</span>
             </li>
+            <li>
+              <span class="fixed">Login local salvava dados do usuario pela resposta de auth, nao por <code>/user/me</code>.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>Troca de email nao exige senha atual.</li>
             <li>PrivateRoute nao valida expiracao do token.</li>
           </ul>
@@ -577,7 +584,12 @@
           <h4>Erro de logica</h4>
           <ul>
             <li>JWT antigo continua valido apos troca de email/senha.</li>
-            <li>Usuario local em <code>localStorage</code> pode ficar desatualizado.</li>
+            <li>
+              Usuario local em <code>localStorage</code> pode ficar desatualizado
+              em alteracoes de perfil. No login, passou a ser hidratado por
+              <span class="fixed"><code>/user/me</code></span>
+              <span class="done-label">parcialmente corrigido</span>.
+            </li>
             <li>
               <span class="fixed">Usuario GitHub acessava tela de edicao de perfil e troca de senha local.</span>
               <span class="done-label">corrigido</span>
@@ -708,7 +720,11 @@
             <span class="fixed">Corrigir usuario GitHub sem senha em profile/delete/password.</span>
             <span class="done-label">corrigido</span>
           </li>
-          <li>Corrigir regras de Profile: email, senha, logout e recarga via <code>/user/me</code>.</li>
+          <li>
+            Corrigir regras de Profile: email, senha, logout e
+            <span class="fixed">recarga inicial via <code>/user/me</code></span>
+            <span class="done-label">parcialmente corrigido</span>.
+          </li>
           <li>Endurecer JWT sem trocar tudo de uma vez.</li>
           <li>Adicionar rate limit em auth e cache GitHub.</li>
           <li>Padronizar erros HTTP.</li>
