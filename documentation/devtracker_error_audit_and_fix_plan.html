@@ -387,11 +387,17 @@
             <li>JWT fica em <code>localStorage</code>.</li>
             <li>Logout nao revoga token.</li>
             <li>Troca de senha nao invalida tokens antigos.</li>
-            <li>PrivateRoute so verifica existencia do token, nao expiracao.</li>
+            <li>
+              <span class="fixed">PrivateRoute so verifica existencia do token, nao expiracao.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ul>
           <h4>Plano seguro</h4>
           <ol>
-            <li>Primeiro reduzir expiracao e validar expiracao no front.</li>
+            <li>
+              <span class="fixed">Primeiro reduzir expiracao e validar expiracao no front.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>Depois avaliar refresh token ou cookie HttpOnly.</li>
             <li>Adicionar token version / updatedAt para invalidar apos troca de senha.</li>
             <li>
@@ -567,7 +573,10 @@
               <span class="done-label">corrigido</span>
             </li>
             <li>Troca de email nao exige senha atual.</li>
-            <li>PrivateRoute nao valida expiracao do token.</li>
+            <li>
+              <span class="fixed">PrivateRoute nao valida expiracao do token.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ul>
           <h4>Outros erros</h4>
           <ul>
