@@ -502,14 +502,24 @@
           <h3><span class="pill medium">P2</span> Corrigir performance do Overview</h3>
           <h4>Problema</h4>
           <p>
-            Overview busca focuses e depois faz uma request de tasks para cada
-            focus. Isso escala mal quando o usuario tiver muitos dados.
+            <span class="fixed">Overview busca focuses e depois faz uma request de tasks para cada
+            focus. Isso escala mal quando o usuario tiver muitos dados.</span>
+            <span class="done-label">corrigido</span>
           </p>
           <h4>Plano seguro</h4>
           <ol>
-            <li>Criar endpoint agregado de overview no backend.</li>
-            <li>Manter contrato antigo no front ate validar o novo.</li>
-            <li>Trocar o front para o endpoint unico.</li>
+            <li>
+              <span class="fixed">Criar endpoint agregado de overview no backend.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Manter contrato antigo no front ate validar o novo.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Trocar o front para o endpoint unico.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ol>
         </article>
 
@@ -825,7 +835,10 @@
             <span class="fixed">Padronizar erros HTTP.</span>
             <span class="done-label">corrigido</span>
           </li>
-          <li>Criar endpoint agregado de Overview.</li>
+          <li>
+            <span class="fixed">Criar endpoint agregado de Overview.</span>
+            <span class="done-label">corrigido</span>
+          </li>
           <li>Adicionar paginacao/quotas.</li>
           <li>Separar configuracoes por ambiente e remover segredos do repo.</li>
           <li>Adicionar migrations PostgreSQL e travar schema de producao.</li>
