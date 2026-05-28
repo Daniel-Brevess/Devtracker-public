@@ -3,6 +3,7 @@ import { getGitHubAnalytics } from "../github/githubAnalyticsService";
 import { getAllGoals } from "../goal/goalService";
 import { getAllSessions } from "../session/sessionService";
 import { getTasksByFocus } from "../task/taskService";
+import api from "../api";
 
 function toDateKey(value) {
   return new Date(value).toISOString().slice(0, 10);
@@ -143,7 +144,7 @@ function buildCommitStats(github) {
   };
 }
 
-export async function getOverviewData() {
+async function getLegacyOverviewData() {
   const [focuses, goals, sessionList, githubResult] = await Promise.all([
     getAllFocuses(),
     getAllGoals(),
@@ -171,4 +172,14 @@ export async function getOverviewData() {
     streak,
     tasks: buildTaskStats(tasks),
   };
+}
+
+export async function getOverviewData() {
+  try {
+    const response = await api.get("/overview");
+
+    return response.data;
+  } catch {
+    return getLegacyOverviewData();
+  }
 }
