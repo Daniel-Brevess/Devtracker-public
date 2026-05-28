@@ -524,18 +524,35 @@
         </article>
 
         <article class="card priority-item medium-border">
-          <h3><span class="pill medium">P2</span> Paginacao e limites</h3>
+          <h3><span class="pill medium">P2</span> Quotas e limites ativos</h3>
           <h4>Problema</h4>
           <p>
-            Listagens de focus, tasks, goals e sessions nao possuem paginacao,
-            limite ou quota.
+            <span class="fixed">Listagens de focus, tasks e goals nao possuiam
+            limite ou quota.</span>
+            <span class="done-label">corrigido</span>
+            Como as quotas ficaram baixas, as telas podem continuar mostrando
+            todos os itens ativos sem paginacao no MVP.
           </p>
           <h4>Plano seguro</h4>
           <ol>
-            <li>Adicionar limites padrao sem quebrar a resposta atual.</li>
-            <li>Depois adicionar paginacao nos endpoints de listagem.</li>
-            <li>Adicionar quotas por usuario/focus.</li>
+            <li>
+              <span class="fixed">Adicionar limites padrao sem quebrar a resposta atual.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Adicionar quotas por usuario/focus.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>Manter listagens completas enquanto os limites ativos forem baixos.</li>
+            <li>Criar historico agregado de criados/concluidos em etapa futura.</li>
           </ol>
+          <h4>Limites atuais</h4>
+          <ul>
+            <li>Usuario: ate 20 focuses ativos.</li>
+            <li>Focus: ate 25 tasks ativas.</li>
+            <li>Usuario: ate 30 goals ativos.</li>
+            <li>Sessions: sem quota de quantidade, usadas para contagem de horas.</li>
+          </ul>
         </article>
 
         <article class="card priority-item low-border">
@@ -708,12 +725,18 @@
           </ul>
           <h4>Erro de logica</h4>
           <ul>
-            <li>Sem paginacao.</li>
-            <li>Overview cria N+1 requests para tasks por focus.</li>
+            <li>Sem paginacao. Com quotas baixas, isso nao e necessario agora.</li>
+            <li>
+              <span class="fixed">Overview cria N+1 requests para tasks por focus.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ul>
           <h4>Outros erros</h4>
           <ul>
-            <li>Sem quota maxima por usuario/focus.</li>
+            <li>
+              <span class="fixed">Sem quota maxima por usuario/focus.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ul>
         </article>
 
@@ -729,7 +752,11 @@
           </ul>
           <h4>Outros erros</h4>
           <ul>
-            <li>Sem paginacao e sem limite de quantidade.</li>
+            <li>
+              <span class="fixed">Sem limite de quantidade.</span>
+              <span class="done-label">corrigido</span>
+              Sem paginacao por enquanto, porque o limite ativo e baixo.
+            </li>
           </ul>
         </article>
 
@@ -839,7 +866,11 @@
             <span class="fixed">Criar endpoint agregado de Overview.</span>
             <span class="done-label">corrigido</span>
           </li>
-          <li>Adicionar paginacao/quotas.</li>
+          <li>
+            <span class="fixed">Adicionar quotas para dados ativos.</span>
+            <span class="done-label">corrigido</span>
+            Paginacao nao e necessaria agora por causa dos limites baixos.
+          </li>
           <li>Separar configuracoes por ambiente e remover segredos do repo.</li>
           <li>Adicionar migrations PostgreSQL e travar schema de producao.</li>
           <li>Fazer limpeza de CORS, imports e mensagens.</li>
