@@ -8,6 +8,7 @@ import org.danielbreves.backend.dto.user.UserResponseDTO;
 import org.danielbreves.backend.dto.user.UserUpdateRequestDTO;
 import org.danielbreves.backend.dto.user.UserUpdateResponseDTO;
 import org.danielbreves.backend.entity.User;
+import org.danielbreves.backend.entity.enums.AuthProvider;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ public class UserService {
             UserUpdateRequestDTO requestDTO
     ) {
         User user = findCurrentUser(currentEmail);
+        ensureLocalAccount(user, "GitHub accounts cannot be updated in DevTracker. Update your profile on GitHub.");
 
         user.setName(requestDTO.name());
         user.setUsername(requestDTO.username());
@@ -64,6 +66,11 @@ public class UserService {
             UserPasswordUpdateRequestDTO requestDTO
     ) {
         User user = findCurrentUser(currentEmail);
+        ensureLocalAccount(user, "GitHub accounts do not use a local DevTracker password.");
+
+        if (isBlank(user.getPassword())) {
+            throw new RuntimeException("Local password is not available for this account");
+        }
 
         boolean passwordMatches = passwordEncoder.matches(
                 requestDTO.currentPassword(),
@@ -86,6 +93,17 @@ public class UserService {
     ) {
         User user = findCurrentUser(currentEmail);
 
+        if (isGitHubAccount(user)) {
+            validateGitHubDeleteConfirmation(user, requestDTO);
+            userRepository.delete(user);
+
+            return new UserDeleteResponseDTO("Account deleted successfully");
+        }
+
+        if (isBlank(requestDTO.password())) {
+            throw new RuntimeException("Password is required");
+        }
+
         boolean passwordMatches = passwordEncoder.matches(
                 requestDTO.password(),
                 user.getPassword()
@@ -103,5 +121,32 @@ public class UserService {
     private User findCurrentUser(String currentEmail) {
         return userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private void ensureLocalAccount(User user, String message) {
+        if (isGitHubAccount(user)) {
+            throw new RuntimeException(message);
+        }
+    }
+
+    private boolean isGitHubAccount(User user) {
+        return user.getAuthProvider() == AuthProvider.GITHUB;
+    }
+
+    private void validateGitHubDeleteConfirmation(
+            User user,
+            UserDeleteRequestDTO requestDTO
+    ) {
+        if (isBlank(requestDTO.confirmationEmail())) {
+            throw new RuntimeException("Confirmation email is required for GitHub accounts");
+        }
+
+        if (!requestDTO.confirmationEmail().trim().equalsIgnoreCase(user.getEmail())) {
+            throw new RuntimeException("Confirmation email does not match this GitHub account");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }
