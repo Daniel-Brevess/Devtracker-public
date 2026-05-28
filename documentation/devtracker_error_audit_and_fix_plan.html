@@ -401,7 +401,6 @@
               <span class="fixed">Primeiro reduzir expiracao e validar expiracao no front.</span>
               <span class="done-label">corrigido</span>
             </li>
-            <li>Depois avaliar refresh token ou cookie HttpOnly.</li>
             <li>
               <span class="fixed">Adicionar token version / updatedAt para invalidar apos troca de senha.</span>
               <span class="done-label">corrigido</span>
@@ -559,6 +558,34 @@
             <li>Remover duplicacoes e imports mortos.</li>
             <li>Padronizar mensagens.</li>
             <li>Deixar CORS centralizado por profile.</li>
+          </ol>
+        </article>
+
+        <article class="card priority-item low-border">
+          <h3><span class="pill low">P4</span> Avaliar refresh token e cookie HttpOnly</h3>
+          <h4>Problema</h4>
+          <p>
+            O token de acesso ainda fica no <code>localStorage</code>. Um fluxo
+            com cookie HttpOnly e refresh token reduziria exposicao a roubo por
+            JavaScript, mas muda a forma como login, logout, renovacao de
+            sessao, CORS, deploy e chamadas autenticadas funcionam.
+          </p>
+          <h4>Por que fica por ultimo</h4>
+          <p>
+            Essa troca e estrutural, nao e apenas uma correcao pontual. Fazer
+            agora misturaria seguranca de sessao com mudanca de banco, deploy,
+            CORS e frontend. O caminho mais seguro e primeiro estabilizar regras
+            de usuario, JWT atual, profile, rate limit e configuracoes de
+            producao; depois migrar para refresh token/cookie com testes
+            dedicados e rollback simples.
+          </p>
+          <h4>Plano seguro futuro</h4>
+          <ol>
+            <li>Definir contrato de access token curto e refresh token.</li>
+            <li>Usar cookie HttpOnly, Secure e SameSite adequado ao deploy.</li>
+            <li>Criar endpoint de renovacao e revogacao de sessao.</li>
+            <li>Ajustar CORS e Axios para requests com credenciais.</li>
+            <li>Testar login, GitHub OAuth, logout e expiracao em ambiente de deploy.</li>
           </ol>
         </article>
       </section>
@@ -760,6 +787,7 @@
           <li>Separar configuracoes por ambiente e remover segredos do repo.</li>
           <li>Adicionar migrations PostgreSQL e travar schema de producao.</li>
           <li>Fazer limpeza de CORS, imports e mensagens.</li>
+          <li>Avaliar refresh token e cookie HttpOnly como etapa final de sessao.</li>
         </ol>
         <p>
           Essa sequencia reduz risco porque primeiro estabiliza identidade,
