@@ -3,8 +3,11 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import DevLogo from "../../assets/DevLogoBranco.png";
-import { login, startGitHubAuth } from "../../services/auth/authService";
-import { saveToken, saveUser } from "../../services/tokenService";
+import {
+  finishAuthentication,
+  login,
+  startGitHubAuth,
+} from "../../services/auth/authService";
 import { getApiErrorMessage } from "../../utils/apiError";
 
 export default function Login() {
@@ -82,20 +85,13 @@ export default function Login() {
         password: formData.password,
       });
 
-      const { token, id, name, username, email } = response;
+      const { token } = response;
 
       if (!token) {
         throw new Error("Token não recebido pelo backend.");
       }
 
-      saveToken(token);
-
-      saveUser({
-        id,
-        name,
-        username,
-        email,
-      });
+      await finishAuthentication(token);
 
       navigate("/dashboard22");
     } catch (error) {

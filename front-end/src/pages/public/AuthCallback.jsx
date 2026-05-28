@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { getMe } from "../../services/user/userService";
-import { saveToken, saveUser } from "../../services/tokenService";
+import { finishAuthentication } from "../../services/auth/authService";
 import { getApiErrorMessage } from "../../utils/apiError";
 
 export default function AuthCallback() {
@@ -26,11 +25,7 @@ export default function AuthCallback() {
       }
 
       try {
-        saveToken(token);
-
-        const user = await getMe();
-
-        saveUser(user);
+        await finishAuthentication(token);
         navigate("/dashboard22", { replace: true });
       } catch (requestError) {
         setMessage(

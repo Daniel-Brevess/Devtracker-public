@@ -1,4 +1,6 @@
 import api from "../api";
+import { logout, saveToken, saveUser } from "../tokenService";
+import { getMe } from "../user/userService";
 
 export async function login({ email, password }) {
   const response = await api.post("/auth/login", {
@@ -7,6 +9,20 @@ export async function login({ email, password }) {
   });
 
   return response.data;
+}
+
+export async function finishAuthentication(token) {
+  saveToken(token);
+
+  try {
+    const user = await getMe();
+    saveUser(user);
+
+    return user;
+  } catch (error) {
+    logout();
+    throw error;
+  }
 }
 
 export async function register({ name, username, email, password }) {
