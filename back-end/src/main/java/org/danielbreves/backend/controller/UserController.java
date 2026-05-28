@@ -10,7 +10,6 @@ import org.danielbreves.backend.dto.user.UserUpdateRequestDTO;
 import org.danielbreves.backend.dto.user.UserUpdateResponseDTO;
 import org.danielbreves.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,10 +21,6 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping(value = "/user")
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "http://localhost:5174"
-})
 public class UserController {
 
     private final UserService userService;

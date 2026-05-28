@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,10 +25,6 @@ import java.time.Duration;
 
 @RestController
 @RequestMapping(value = "/auth")
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "http://localhost:5174"
-})
 public class AuthController {
 
     private static final String GITHUB_STATE_COOKIE = "devtracker_oauth_state";
