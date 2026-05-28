@@ -13,6 +13,7 @@ import {
 import {
   getCurrentUser,
   getDisplayUsername,
+  getMe,
   getUserInitials,
   isGitHubUser,
 } from "../../services/user/userService";
@@ -35,7 +36,9 @@ export default function ProfileEdit22() {
     name: user?.name || "",
     username: displayUsername || "",
     email: user?.email || "",
+    currentPassword: "",
   });
+  const previewUsername = isGitHubAccount ? displayUsername : formData.username;
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -85,25 +88,20 @@ async function handleSubmit(event) {
 
   const emailChanged = oldEmail !== newEmail;
 
+  if (!formData.currentPassword) {
+    setProfileMessage("Insert your current password.");
+    return;
+  }
+
   const payload = {
     name: formData.name.trim(),
     username: formData.username.trim(),
     email: newEmail,
+    currentPassword: formData.currentPassword,
   };
 
   try {
-    const response = await api.put("/user/update", payload);
-
-    const updatedUser = response.data;
-
-    const userToSave = {
-      ...user,
-      name: updatedUser.name || formData.name.trim(),
-      username: updatedUser.username || formData.username.trim(),
-      email: updatedUser.email || formData.email.trim(),
-    };
-
-    saveUser(userToSave);
+    await api.put("/user/update", payload);
 
     if (emailChanged) {
       setProfileMessage("Email updated successfully. Please login again.");
@@ -115,6 +113,15 @@ async function handleSubmit(event) {
 
       return;
     }
+
+    const refreshedUser = await getMe();
+    saveUser(refreshedUser);
+    setFormData({
+      name: refreshedUser.name || "",
+      username: getDisplayUsername(refreshedUser),
+      email: refreshedUser.email || "",
+      currentPassword: "",
+    });
 
     setProfileMessage("Profile updated successfully.");
   } catch (error) {
@@ -235,7 +242,7 @@ async function handleSubmit(event) {
                 {formData.name || "User"}
               </h3>
               <p className="mt-1 text-sm text-zinc-500">
-                @{displayUsername}
+                @{previewUsername || "username"}
               </p>
             </div>
           </div>
@@ -320,6 +327,23 @@ async function handleSubmit(event) {
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50 disabled:cursor-not-allowed disabled:text-zinc-500"
               />
             </div>
+
+            {!isGitHubAccount && (
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm text-zinc-400">
+                  <Lock className="h-3 w-3" />
+                  Current Password
+                </label>
+
+                <input
+                  name="currentPassword"
+                  type="password"
+                  value={formData.currentPassword}
+                  onChange={handleChange}
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none transition-all focus:border-blue-500/50"
+                />
+              </div>
+            )}
 
             {profileMessage && (
               <p className="text-sm text-blue-400">{profileMessage}</p>
