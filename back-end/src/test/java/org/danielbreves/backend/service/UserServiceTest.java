@@ -99,6 +99,7 @@ class UserServiceTest {
                 null
         );
         user.setAuthProvider(AuthProvider.LOCAL);
+        user.setTokenVersion(4L);
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("current-password", user.getPassword())).thenReturn(true);
@@ -117,6 +118,41 @@ class UserServiceTest {
         assertEquals("Updated Name", user.getName());
         assertEquals("updated-username", user.getUsername());
         assertEquals("updated@test.com", user.getEmail());
+        assertEquals(5L, user.getTokenVersion());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateUserKeepsTokenVersionWhenEmailDoesNotChange() {
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        User user = new User(
+                1L,
+                "Local User",
+                "local-user",
+                "encoded-password",
+                "local@test.com",
+                null
+        );
+        user.setAuthProvider(AuthProvider.LOCAL);
+        user.setTokenVersion(4L);
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("current-password", user.getPassword())).thenReturn(true);
+        when(userRepository.save(user)).thenReturn(user);
+
+        userService.updateUser(
+                user.getEmail(),
+                new UserUpdateRequestDTO(
+                        "Updated Name",
+                        "updated-username",
+                        "local@test.com",
+                        "current-password"
+                )
+        );
+
+        assertEquals(4L, user.getTokenVersion());
         verify(userRepository).save(user);
     }
 

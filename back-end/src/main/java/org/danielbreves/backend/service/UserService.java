@@ -48,10 +48,15 @@ public class UserService {
         User user = findCurrentUser(currentEmail);
         ensureLocalAccount(user, "GitHub accounts cannot be updated in DevTracker. Update your profile on GitHub.");
         validateCurrentPassword(user, requestDTO.currentPassword());
+        boolean emailChanged = !user.getEmail().equalsIgnoreCase(requestDTO.email());
 
         user.setName(requestDTO.name());
         user.setUsername(requestDTO.username());
         user.setEmail(requestDTO.email());
+
+        if (emailChanged) {
+            user.setTokenVersion(nextTokenVersion(user));
+        }
 
         User updatedUser = userRepository.save(user);
 
