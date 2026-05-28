@@ -9,6 +9,7 @@ import org.danielbreves.backend.dto.focus.UpdateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
 import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.User;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.FocusRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -18,8 +19,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,6 +54,28 @@ class FocusServiceTest {
         assertEquals(1L, responseDTO.idUser());
         assertEquals("Study", responseDTO.title());
         assertEquals(createdAt, responseDTO.createdAt());
+    }
+
+    @Test
+    void createFocusRejectsWhenUserReachedActiveFocusQuota() {
+        FocusRepository focusRepository = mock(FocusRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        FocusService focusService = new FocusService(focusRepository, userRepository);
+
+        String currentEmail = "user@test.com";
+        User user = new User(1L, "User", "username", "password", currentEmail, null);
+        CreateFocusRequestDTO requestDTO = new CreateFocusRequestDTO("Study");
+
+        when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
+        when(focusRepository.countByUser(user)).thenReturn(20L);
+
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> focusService.createFocus(currentEmail, requestDTO)
+        );
+
+        assertEquals("You can have up to 20 active focuses", exception.getMessage());
+        verify(focusRepository, never()).save(any(Focus.class));
     }
 
     @Test

@@ -10,6 +10,7 @@ import org.danielbreves.backend.entity.Goal;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.entity.enums.GoalDifficulty;
 import org.danielbreves.backend.entity.enums.GoalStatus;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.GoalRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +71,33 @@ class GoalServiceTest {
         assertEquals(GoalDifficulty.HIGH, responseDTO.difficulty());
         assertEquals(GoalStatus.IN_PROGRESS, responseDTO.status());
         assertEquals(createdAt, responseDTO.createdAt());
+    }
+
+    @Test
+    void createGoalRejectsWhenUserReachedActiveGoalQuota() {
+        GoalRepository goalRepository = mock(GoalRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        GoalService goalService = new GoalService(goalRepository, userRepository);
+
+        String currentEmail = "user@test.com";
+        User user = new User(1L, "User", "username", "password", currentEmail, null);
+        CreateGoalRequestDTO requestDTO = new CreateGoalRequestDTO(
+                "Learn Spring",
+                "Build a complete API",
+                GoalDifficulty.HIGH,
+                GoalStatus.IN_PROGRESS
+        );
+
+        when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
+        when(goalRepository.countByIdUser(user.getId())).thenReturn(30L);
+
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> goalService.createGoal(currentEmail, requestDTO)
+        );
+
+        assertEquals("You can have up to 30 active goals", exception.getMessage());
+        verify(goalRepository, never()).save(any(Goal.class));
     }
 
     @Test

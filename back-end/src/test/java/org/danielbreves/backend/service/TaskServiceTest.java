@@ -11,6 +11,7 @@ import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.Task;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.entity.enums.TaskPriority;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.FocusRepository;
 import org.danielbreves.backend.repository.TaskRepository;
 import org.danielbreves.backend.repository.UserRepository;
@@ -21,8 +22,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -78,6 +81,40 @@ class TaskServiceTest {
         assertEquals(TaskPriority.ALTA, responseDTO.priority());
         assertEquals(false, responseDTO.status());
         assertEquals(createdAt, responseDTO.createdAt());
+    }
+
+    @Test
+    void createTaskRejectsWhenFocusReachedActiveTaskQuota() {
+        TaskRepository taskRepository = mock(TaskRepository.class);
+        FocusRepository focusRepository = mock(FocusRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TaskService taskService = new TaskService(
+                taskRepository,
+                focusRepository,
+                userRepository
+        );
+
+        String currentEmail = "user@test.com";
+        User user = new User(1L, "User", "username", "password", currentEmail, null);
+        Focus focus = new Focus(10L, user, "Study", null);
+        CreateTaskRequestDTO requestDTO =
+                new CreateTaskRequestDTO(
+                        "Read chapter",
+                        "Read the first chapter",
+                        TaskPriority.ALTA
+                );
+
+        when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
+        when(focusRepository.findByIdAndUser(10L, user)).thenReturn(Optional.of(focus));
+        when(taskRepository.countByFocus(focus)).thenReturn(25L);
+
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> taskService.createTask(currentEmail, 10L, requestDTO)
+        );
+
+        assertEquals("A focus can have up to 25 active tasks", exception.getMessage());
+        verify(taskRepository, never()).save(any(Task.class));
     }
 
     @Test
