@@ -617,11 +617,24 @@
           </p>
           <h4>Plano seguro</h4>
           <ol>
-            <li>Congelar modelo atual das entidades.</li>
-            <li>Criar migrations versionadas para users, focuses, tasks, goals e sessions.</li>
-            <li>Validar constraints, FKs e indices.</li>
+            <li>
+              <span class="fixed">Congelar modelo atual das entidades.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Criar migrations versionadas para users, focuses, tasks, goals e sessions.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Validar constraints, FKs e indices.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>Rodar teste em banco PostgreSQL local antes do deploy.</li>
-            <li>So depois trocar configuracao de producao.</li>
+            <li>
+              <span class="fixed">So depois trocar configuracao de producao.</span>
+              <span class="done-label">preparado</span>
+              Producao ja usa Flyway e <code>ddl-auto=validate</code>, mas valores reais ficam para deploy.
+            </li>
           </ol>
         </article>
 
@@ -865,7 +878,10 @@
               <span class="fixed"><code>ddl-auto=update</code> nao deve ser usado em producao.</span>
               <span class="done-label">corrigido em prod</span>
             </li>
-            <li>Migracao para PostgreSQL precisa migrations versionadas.</li>
+            <li>
+              <span class="fixed">Migracao para PostgreSQL precisa migrations versionadas.</span>
+              <span class="done-label">corrigido</span>
+            </li>
           </ul>
           <h4>Outros erros</h4>
           <ul>
@@ -918,7 +934,10 @@
             <span class="done-label">preparado</span>
             Valores reais e usuario especifico do banco ficam para PostgreSQL/deploy.
           </li>
-          <li>Adicionar migrations PostgreSQL e travar schema de producao.</li>
+          <li>
+            <span class="fixed">Adicionar migrations PostgreSQL e travar schema de producao.</span>
+            <span class="done-label">corrigido</span>
+          </li>
           <li>Fazer limpeza de CORS, imports e mensagens.</li>
           <li>Avaliar refresh token e cookie HttpOnly como etapa final de sessao.</li>
         </ol>
