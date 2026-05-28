@@ -68,6 +68,42 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.withMessage(exception.getMessage()));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNotFound(
+            NotFoundException exception
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiErrorResponse.withMessage(exception.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnauthorized(
+            UnauthorizedException exception
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorResponse.withMessage(exception.getMessage()));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(
+            ConflictException exception
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiErrorResponse.withMessage(exception.getMessage()));
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleValidation(
+            ValidationException exception
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.withMessage(exception.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(
             RuntimeException exception
