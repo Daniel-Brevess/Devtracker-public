@@ -16,6 +16,9 @@ public record UserUpdateRequestDTO(
 
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
-        String email
+        String email,
+
+        @NotBlank(message = "Current password is required")
+        String currentPassword
 ) {
 }

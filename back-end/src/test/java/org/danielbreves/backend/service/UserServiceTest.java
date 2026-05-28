@@ -37,7 +37,8 @@ class UserServiceTest {
                         new UserUpdateRequestDTO(
                                 "Updated Name",
                                 "updated-username",
-                                "updated@test.com"
+                                "updated@test.com",
+                                "current-password"
                         )
                 )
         );
@@ -47,6 +48,76 @@ class UserServiceTest {
                 exception.getMessage()
         );
         verify(userRepository, never()).save(user);
+    }
+
+    @Test
+    void updateUserRequiresCurrentPasswordForLocalAccounts() {
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        User user = new User(
+                1L,
+                "Local User",
+                "local-user",
+                "encoded-password",
+                "local@test.com",
+                null
+        );
+        user.setAuthProvider(AuthProvider.LOCAL);
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong-password", user.getPassword())).thenReturn(false);
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> userService.updateUser(
+                        user.getEmail(),
+                        new UserUpdateRequestDTO(
+                                "Updated Name",
+                                "updated-username",
+                                "updated@test.com",
+                                "wrong-password"
+                        )
+                )
+        );
+
+        assertEquals("Current password is invalid", exception.getMessage());
+        verify(userRepository, never()).save(user);
+    }
+
+    @Test
+    void updateUserUpdatesLocalAccountWhenCurrentPasswordMatches() {
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        User user = new User(
+                1L,
+                "Local User",
+                "local-user",
+                "encoded-password",
+                "local@test.com",
+                null
+        );
+        user.setAuthProvider(AuthProvider.LOCAL);
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("current-password", user.getPassword())).thenReturn(true);
+        when(userRepository.save(user)).thenReturn(user);
+
+        userService.updateUser(
+                user.getEmail(),
+                new UserUpdateRequestDTO(
+                        "Updated Name",
+                        "updated-username",
+                        "updated@test.com",
+                        "current-password"
+                )
+        );
+
+        assertEquals("Updated Name", user.getName());
+        assertEquals("updated-username", user.getUsername());
+        assertEquals("updated@test.com", user.getEmail());
+        verify(userRepository).save(user);
     }
 
     @Test

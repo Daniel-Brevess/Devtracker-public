@@ -47,6 +47,7 @@ public class UserService {
     ) {
         User user = findCurrentUser(currentEmail);
         ensureLocalAccount(user, "GitHub accounts cannot be updated in DevTracker. Update your profile on GitHub.");
+        validateCurrentPassword(user, requestDTO.currentPassword());
 
         user.setName(requestDTO.name());
         user.setUsername(requestDTO.username());
@@ -122,6 +123,25 @@ public class UserService {
     private User findCurrentUser(String currentEmail) {
         return userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private void validateCurrentPassword(User user, String currentPassword) {
+        if (isBlank(currentPassword)) {
+            throw new RuntimeException("Current password is required");
+        }
+
+        if (isBlank(user.getPassword())) {
+            throw new RuntimeException("Local password is not available for this account");
+        }
+
+        boolean passwordMatches = passwordEncoder.matches(
+                currentPassword,
+                user.getPassword()
+        );
+
+        if (!passwordMatches) {
+            throw new RuntimeException("Current password is invalid");
+        }
     }
 
     private void ensureLocalAccount(User user, String message) {
