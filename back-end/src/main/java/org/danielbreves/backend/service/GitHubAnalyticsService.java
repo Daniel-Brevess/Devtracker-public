@@ -16,6 +16,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -24,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class GitHubAnalyticsService {
@@ -32,11 +35,14 @@ public class GitHubAnalyticsService {
     private static final int REPOSITORY_LIMIT = 12;
     private static final int DISPLAY_REPOSITORY_LIMIT = 5;
     private static final int STACK_LIMIT = 5;
+    private static final Duration ANALYTICS_CACHE_TTL = Duration.ofMinutes(5);
 
     private final UserRepository userRepository;
     private final GitHubTokenCryptoService gitHubTokenCryptoService;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final ConcurrentHashMap<Long, CachedGitHubAnalytics> analyticsCache =
+            new ConcurrentHashMap<>();
 
     public GitHubAnalyticsService(
             UserRepository userRepository,
@@ -51,6 +57,11 @@ public class GitHubAnalyticsService {
     public GitHubAnalyticsResponseDTO getAnalytics(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+        GitHubAnalyticsResponseDTO cachedAnalytics = getCachedAnalytics(user);
+
+        if (cachedAnalytics != null) {
+            return cachedAnalytics;
+        }
 
         if (
                 user.getGithubUsername() == null ||
@@ -62,8 +73,12 @@ public class GitHubAnalyticsService {
         try {
             String accessToken =
                     gitHubTokenCryptoService.decrypt(user.getGithubAccessToken());
+            GitHubAnalyticsResponseDTO analytics =
+                    buildAnalytics(user.getGithubUsername(), accessToken);
 
-            return buildAnalytics(user.getGithubUsername(), accessToken);
+            cacheAnalytics(user, analytics);
+
+            return analytics;
         } catch (RuntimeException exception) {
             return GitHubAnalyticsResponseDTO.disconnected();
         }
@@ -370,5 +385,47 @@ public class GitHubAnalyticsService {
                 .asText("");
 
         return new String[] { owner, repository.path("name").asText() };
+    }
+
+    private GitHubAnalyticsResponseDTO getCachedAnalytics(User user) {
+        if (user.getId() == null) {
+            return null;
+        }
+
+        CachedGitHubAnalytics cachedAnalytics = analyticsCache.get(user.getId());
+
+        if (cachedAnalytics == null) {
+            return null;
+        }
+
+        if (!cachedAnalytics.expiresAt().isAfter(Instant.now())) {
+            analyticsCache.remove(user.getId());
+            return null;
+        }
+
+        return cachedAnalytics.analytics();
+    }
+
+    private void cacheAnalytics(
+            User user,
+            GitHubAnalyticsResponseDTO analytics
+    ) {
+        if (user.getId() == null || !analytics.connected()) {
+            return;
+        }
+
+        analyticsCache.put(
+                user.getId(),
+                new CachedGitHubAnalytics(
+                        analytics,
+                        Instant.now().plus(ANALYTICS_CACHE_TTL)
+                )
+        );
+    }
+
+    private record CachedGitHubAnalytics(
+            GitHubAnalyticsResponseDTO analytics,
+            Instant expiresAt
+    ) {
     }
 }
