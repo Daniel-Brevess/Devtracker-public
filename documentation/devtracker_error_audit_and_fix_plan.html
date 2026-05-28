@@ -564,19 +564,47 @@
           </p>
           <h4>Problema</h4>
           <ul>
-            <li>Senha do banco hardcoded.</li>
-            <li><code>jwt.secret</code> hardcoded.</li>
-            <li><code>spring.jpa.show-sql=true</code>.</li>
-            <li><code>spring.jpa.hibernate.ddl-auto=update</code>.</li>
-            <li>Banco usando usuario root local.</li>
+            <li>
+              <span class="fixed">Senha do banco hardcoded.</span>
+              <span class="done-label">preparado</span>
+              Removida do arquivo base; em dev/prod passa por variavel de ambiente.
+            </li>
+            <li>
+              <span class="fixed"><code>jwt.secret</code> hardcoded.</span>
+              <span class="done-label">preparado</span>
+              Producao exige <code>JWT_SECRET</code>; dev usa placeholder local nao produtivo.
+            </li>
+            <li>
+              <span class="fixed"><code>spring.jpa.show-sql=true</code>.</span>
+              <span class="done-label">corrigido em prod</span>
+            </li>
+            <li>
+              <span class="fixed"><code>spring.jpa.hibernate.ddl-auto=update</code>.</span>
+              <span class="done-label">corrigido em prod</span>
+              Producao usa <code>validate</code> ate entrarmos em migrations.
+            </li>
+            <li>Banco usando usuario root local. Sera tratado na migracao PostgreSQL.</li>
           </ul>
           <h4>Plano seguro</h4>
           <ol>
-            <li>Criar perfis <code>dev</code> e <code>prod</code>.</li>
-            <li>Mover segredos para variaveis de ambiente.</li>
+            <li>
+              <span class="fixed">Criar perfis <code>dev</code> e <code>prod</code>.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Mover segredos para variaveis de ambiente.</span>
+              <span class="done-label">preparado</span>
+            </li>
             <li>Criar usuario de banco especifico da aplicacao.</li>
-            <li>Desativar SQL log em producao.</li>
-            <li>Substituir <code>ddl-auto=update</code> por migrations antes do deploy.</li>
+            <li>
+              <span class="fixed">Desativar SQL log em producao.</span>
+              <span class="done-label">corrigido</span>
+            </li>
+            <li>
+              <span class="fixed">Substituir <code>ddl-auto=update</code> em producao.</span>
+              <span class="done-label">preparado</span>
+              Migrations ficam para a etapa PostgreSQL/deploy.
+            </li>
           </ol>
         </article>
 
@@ -799,7 +827,10 @@
           <h3>Github</h3>
           <h4>Erro de seguranca</h4>
           <ul>
-            <li>Token criptografado esta correto, mas segredo de fallback usa <code>jwt.secret</code>.</li>
+            <li>
+              <span class="fixed">Token criptografado esta correto, mas segredo de fallback usa <code>jwt.secret</code>.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>Escopo <code>repo</code> e amplo.</li>
           </ul>
           <h4>Erro de logica</h4>
@@ -820,19 +851,30 @@
           <h3>Database / Deploy</h3>
           <h4>Erro de seguranca</h4>
           <ul>
-            <li>Senha do banco e JWT secret hardcoded.</li>
+            <li>
+              <span class="fixed">Senha do banco e JWT secret hardcoded.</span>
+              <span class="done-label">preparado</span>
+              Arquivo base nao guarda mais valores reais; valores definitivos ficam para PostgreSQL/deploy.
+            </li>
             <li>CORS precisa sair de localhost e usar dominio real.</li>
             <li>API do frontend usa baseURL fixa em localhost.</li>
           </ul>
           <h4>Erro de logica</h4>
           <ul>
-            <li><code>ddl-auto=update</code> nao deve ser usado em producao.</li>
+            <li>
+              <span class="fixed"><code>ddl-auto=update</code> nao deve ser usado em producao.</span>
+              <span class="done-label">corrigido em prod</span>
+            </li>
             <li>Migracao para PostgreSQL precisa migrations versionadas.</li>
           </ul>
           <h4>Outros erros</h4>
           <ul>
             <li>Remover duplicacao de CORS nos controllers.</li>
-            <li>Separar profiles dev/test/prod.</li>
+            <li>
+              <span class="fixed">Separar profiles dev/prod.</span>
+              <span class="done-label">corrigido</span>
+              Profile de teste pode ser criado quando houver banco dedicado para testes de integracao.
+            </li>
           </ul>
         </article>
       </section>
@@ -871,7 +913,11 @@
             <span class="done-label">corrigido</span>
             Paginacao nao e necessaria agora por causa dos limites baixos.
           </li>
-          <li>Separar configuracoes por ambiente e remover segredos do repo.</li>
+          <li>
+            <span class="fixed">Separar configuracoes por ambiente e remover segredos do arquivo base.</span>
+            <span class="done-label">preparado</span>
+            Valores reais e usuario especifico do banco ficam para PostgreSQL/deploy.
+          </li>
           <li>Adicionar migrations PostgreSQL e travar schema de producao.</li>
           <li>Fazer limpeza de CORS, imports e mensagens.</li>
           <li>Avaliar refresh token e cookie HttpOnly como etapa final de sessao.</li>
