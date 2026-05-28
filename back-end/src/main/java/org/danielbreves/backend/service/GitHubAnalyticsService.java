@@ -21,8 +21,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,10 +33,28 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GitHubAnalyticsService {
 
     private static final String GITHUB_API_URL = "https://api.github.com";
+    private static final String GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
     private static final int REPOSITORY_LIMIT = 12;
     private static final int DISPLAY_REPOSITORY_LIMIT = 5;
     private static final int STACK_LIMIT = 5;
     private static final Duration ANALYTICS_CACHE_TTL = Duration.ofMinutes(5);
+    private static final ZoneId CONTRIBUTION_ZONE = ZoneId.of("America/Sao_Paulo");
+    private static final String CONTRIBUTIONS_QUERY = """
+            query($username: String!, $from: DateTime!, $to: DateTime!) {
+              user(login: $username) {
+                contributionsCollection(from: $from, to: $to) {
+                  contributionCalendar {
+                    weeks {
+                      contributionDays {
+                        date
+                        contributionCount
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """;
 
     private final UserRepository userRepository;
     private final GitHubTokenCryptoService gitHubTokenCryptoService;
@@ -98,10 +115,10 @@ public class GitHubAnalyticsService {
                 buildRepositoryStats(selectedRepositories);
         List<GitHubLanguageStatsDTO> stacks =
                 buildLanguageStats(selectedRepositories, accessToken);
-        Map<String, Integer> commitCountByDate =
-                buildCommitCountByDate(username, selectedRepositories, accessToken);
+        Map<String, Integer> contributionCountByDate =
+                buildContributionCountByDate(username, accessToken);
         List<GitHubCommitFrequencyDTO> frequency =
-                buildSevenDayFrequency(commitCountByDate);
+                buildSevenDayFrequency(contributionCountByDate);
         int totalRepos = repositories.size();
         int privateRepos = countRepositoriesByVisibility(repositories, true);
         int publicRepos = countRepositoriesByVisibility(repositories, false);
@@ -109,7 +126,7 @@ public class GitHubAnalyticsService {
         int commitsLastSevenDays = frequency.stream()
                 .mapToInt(GitHubCommitFrequencyDTO::commits)
                 .sum();
-        int commitsLastThirtyDays = commitCountByDate.values().stream()
+        int commitsLastThirtyDays = contributionCountByDate.values().stream()
                 .mapToInt(Integer::intValue)
                 .sum();
 
@@ -241,67 +258,58 @@ public class GitHubAnalyticsService {
         return sendGitHubRequest(uri, accessToken);
     }
 
-    private Map<String, Integer> buildCommitCountByDate(
+    private Map<String, Integer> buildContributionCountByDate(
             String username,
-            List<JsonNode> repositories,
             String accessToken
     ) {
-        Map<String, Integer> commitCountByDate = new LinkedHashMap<>();
-        String since = OffsetDateTime
-                .now(ZoneOffset.UTC)
-                .minusDays(30)
-                .toString();
+        if (accessToken == null || accessToken.isBlank()) {
+            return new LinkedHashMap<>();
+        }
 
-        for (JsonNode repository : repositories) {
-            JsonNode commits = requestRepositoryCommits(
-                username,
-                    repository,
-                    since,
-                    accessToken
-            );
+        LocalDate today = LocalDate.now(CONTRIBUTION_ZONE);
+        Instant from = today.minusDays(29)
+                .atStartOfDay(CONTRIBUTION_ZONE)
+                .toInstant();
+        Instant to = today.plusDays(1)
+                .atStartOfDay(CONTRIBUTION_ZONE)
+                .minus(Duration.ofMillis(1))
+                .toInstant();
+        Map<String, Object> variables = Map.of(
+                "username", username,
+                "from", from.toString(),
+                "to", to.toString()
+        );
+        Map<String, Object> payload = Map.of(
+                "query", CONTRIBUTIONS_QUERY,
+                "variables", variables
+        );
+        JsonNode response = sendGitHubGraphQLRequest(payload, accessToken);
+        JsonNode contributionDays = response
+                .path("data")
+                .path("user")
+                .path("contributionsCollection")
+                .path("contributionCalendar")
+                .path("weeks");
+        Map<String, Integer> contributionCountByDate = new LinkedHashMap<>();
 
-            for (JsonNode commit : commits) {
-                String date = commit
-                        .path("commit")
-                        .path("author")
-                        .path("date")
-                        .asText("");
+        for (JsonNode week : contributionDays) {
+            for (JsonNode day : week.path("contributionDays")) {
+                String date = day.path("date").asText("");
+                int contributionCount = day.path("contributionCount").asInt(0);
 
                 if (!date.isBlank()) {
-                    String dateKey = OffsetDateTime.parse(date)
-                            .toLocalDate()
-                            .toString();
-                    commitCountByDate.merge(dateKey, 1, Integer::sum);
+                    contributionCountByDate.put(date, contributionCount);
                 }
             }
         }
 
-        return commitCountByDate;
-    }
-
-    private JsonNode requestRepositoryCommits(
-            String username,
-            JsonNode repository,
-            String since,
-            String accessToken
-    ) {
-        String[] ownerAndRepository = resolveOwnerAndRepository(repository);
-        URI uri = UriComponentsBuilder
-                .fromUriString(GITHUB_API_URL + "/repos/{username}/{repository}/commits")
-                .queryParam("author", username)
-                .queryParam("since", since)
-                .queryParam("per_page", 100)
-                .encode()
-                .buildAndExpand(ownerAndRepository[0], ownerAndRepository[1])
-                .toUri();
-
-        return sendGitHubRequest(uri, accessToken);
+        return contributionCountByDate;
     }
 
     private List<GitHubCommitFrequencyDTO> buildSevenDayFrequency(
-            Map<String, Integer> commitCountByDate
+            Map<String, Integer> contributionCountByDate
     ) {
-        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        LocalDate today = LocalDate.now(CONTRIBUTION_ZONE);
         List<GitHubCommitFrequencyDTO> frequency = new ArrayList<>();
 
         for (int index = 6; index >= 0; index--) {
@@ -309,11 +317,50 @@ public class GitHubAnalyticsService {
 
             frequency.add(new GitHubCommitFrequencyDTO(
                     date,
-                    commitCountByDate.getOrDefault(date, 0)
+                    contributionCountByDate.getOrDefault(date, 0)
             ));
         }
 
         return frequency;
+    }
+
+    private JsonNode sendGitHubGraphQLRequest(
+            Map<String, Object> payload,
+            String accessToken
+    ) {
+        try {
+            String body = objectMapper.writeValueAsString(payload);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(GITHUB_GRAPHQL_URL))
+                    .header("Accept", "application/vnd.github+json")
+                    .header("X-GitHub-Api-Version", "2022-11-28")
+                    .header("User-Agent", "DevTracker")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            HttpResponse<String> response = httpClient.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofString()
+            );
+
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new ValidationException("GitHub contributions request failed");
+            }
+
+            JsonNode responseBody = objectMapper.readTree(response.body());
+
+            if (responseBody.has("errors")) {
+                throw new ValidationException("GitHub contributions request returned errors");
+            }
+
+            return responseBody;
+        } catch (IOException exception) {
+            throw new ValidationException("Could not communicate with GitHub");
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new ValidationException("GitHub contributions request was interrupted");
+        }
     }
 
     private JsonNode sendGitHubRequest(URI uri, String accessToken) {

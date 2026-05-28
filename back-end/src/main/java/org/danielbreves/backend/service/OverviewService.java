@@ -23,7 +23,7 @@ import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class OverviewService {
+    private static final ZoneId ACTIVITY_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final FocusRepository focusRepository;
     private final GoalRepository goalRepository;
@@ -197,7 +198,7 @@ public class OverviewService {
     }
 
     private List<String> getLastSevenDays() {
-        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        LocalDate today = LocalDate.now(ACTIVITY_ZONE);
 
         return java.util.stream.IntStream.rangeClosed(0, 6)
                 .mapToObj(index -> today.minusDays(6L - index).toString())
@@ -206,7 +207,11 @@ public class OverviewService {
 
     private int getCurrentStreak(Set<String> activeDateKeys) {
         int streak = 0;
-        LocalDate cursor = LocalDate.now(ZoneOffset.UTC);
+        LocalDate cursor = LocalDate.now(ACTIVITY_ZONE);
+
+        if (!activeDateKeys.contains(cursor.toString())) {
+            cursor = cursor.minusDays(1);
+        }
 
         while (activeDateKeys.contains(cursor.toString())) {
             streak++;
