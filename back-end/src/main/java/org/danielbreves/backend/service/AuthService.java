@@ -112,7 +112,7 @@ public class AuthService {
             throw new RuntimeException("Email ou senha invalidos");
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user);
 
         return new LoginResponseDTO(
                 user.getId(),
@@ -159,7 +159,7 @@ public class AuthService {
                 .orElseGet(() -> createGitHubUser(gitHubUser, email));
         updateGitHubToken(user, accessTokenResponse);
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user);
 
         return UriComponentsBuilder
                 .fromUriString(frontendAuthCallbackUrl)

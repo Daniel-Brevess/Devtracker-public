@@ -82,6 +82,7 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(requestDTO.newPassword()));
+        user.setTokenVersion(nextTokenVersion(user));
         userRepository.save(user);
 
         return new UserPasswordUpdateResponseDTO("Password updated successfully");
@@ -148,5 +149,11 @@ public class UserService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private Long nextTokenVersion(User user) {
+        Long currentTokenVersion = user.getTokenVersion();
+
+        return currentTokenVersion == null ? 1L : currentTokenVersion + 1L;
     }
 }

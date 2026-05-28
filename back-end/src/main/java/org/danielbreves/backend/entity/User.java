@@ -31,6 +31,7 @@ public class User implements Serializable {
     private String githubTokenScope;
     @Enumerated(EnumType.STRING)
     private AuthProvider authProvider;
+    private Long tokenVersion;
     private Date createdAt;
 
     public User() {
@@ -131,10 +132,22 @@ public class User implements Serializable {
         this.authProvider = authProvider;
     }
 
+    public Long getTokenVersion() {
+        return tokenVersion;
+    }
+
+    public void setTokenVersion(Long tokenVersion) {
+        this.tokenVersion = tokenVersion;
+    }
+
     @PrePersist
     public void prePersist() {
         if (authProvider == null) {
             authProvider = AuthProvider.LOCAL;
+        }
+
+        if (tokenVersion == null) {
+            tokenVersion = 0L;
         }
     }
 

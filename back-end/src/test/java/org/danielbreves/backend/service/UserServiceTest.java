@@ -74,6 +74,36 @@ class UserServiceTest {
     }
 
     @Test
+    void updatePasswordIncrementsTokenVersionForLocalAccounts() {
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        User user = new User(
+                1L,
+                "Local User",
+                "local-user",
+                "encoded-password",
+                "local@test.com",
+                null
+        );
+        user.setAuthProvider(AuthProvider.LOCAL);
+        user.setTokenVersion(2L);
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("old-password", user.getPassword())).thenReturn(true);
+        when(passwordEncoder.encode("new-password")).thenReturn("new-encoded-password");
+
+        userService.updatePassword(
+                user.getEmail(),
+                new UserPasswordUpdateRequestDTO("old-password", "new-password")
+        );
+
+        assertEquals("new-encoded-password", user.getPassword());
+        assertEquals(3L, user.getTokenVersion());
+        verify(userRepository).save(user);
+    }
+
+    @Test
     void deleteUserDeletesGitHubAccountWhenConfirmationEmailMatches() {
         UserRepository userRepository = mock(UserRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);

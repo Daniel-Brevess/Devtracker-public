@@ -386,7 +386,10 @@
           <ul>
             <li>JWT fica em <code>localStorage</code>.</li>
             <li>Logout nao revoga token.</li>
-            <li>Troca de senha nao invalida tokens antigos.</li>
+            <li>
+              <span class="fixed">Troca de senha nao invalida tokens antigos.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>
               <span class="fixed">PrivateRoute so verifica existencia do token, nao expiracao.</span>
               <span class="done-label">corrigido</span>
@@ -399,7 +402,10 @@
               <span class="done-label">corrigido</span>
             </li>
             <li>Depois avaliar refresh token ou cookie HttpOnly.</li>
-            <li>Adicionar token version / updatedAt para invalidar apos troca de senha.</li>
+            <li>
+              <span class="fixed">Adicionar token version / updatedAt para invalidar apos troca de senha.</span>
+              <span class="done-label">corrigido</span>
+            </li>
             <li>
               <span class="fixed">Manter backend como fonte final de autorizacao.</span>
               <span class="done-label">corrigido no fluxo de login</span>
@@ -416,7 +422,11 @@
               <span class="fixed">Usuario GitHub nao deve acessar troca de senha local.</span>
               <span class="done-label">corrigido</span>
             </li>
-            <li>JWT antigo continua valido apos troca de email/senha.</li>
+            <li>
+              JWT antigo continua valido apos troca de email.
+              <span class="fixed">Apos troca de senha, tokens antigos sao invalidados por versao.</span>
+              <span class="done-label">parcialmente corrigido</span>
+            </li>
           </ul>
           <h4>Plano seguro</h4>
           <ol>
@@ -426,7 +436,11 @@
               <span class="done-label">corrigido</span>
             </li>
             <li>Recarregar usuario por <code>/user/me</code> apos alteracoes.</li>
-            <li>Invalidar token antigo quando email/senha mudarem.</li>
+            <li>
+              Invalidar token antigo quando email/
+              <span class="fixed">senha</span> mudarem.
+              <span class="done-label">senha corrigida</span>
+            </li>
           </ol>
         </article>
 
@@ -592,7 +606,11 @@
           </ul>
           <h4>Erro de logica</h4>
           <ul>
-            <li>JWT antigo continua valido apos troca de email/senha.</li>
+            <li>
+              JWT antigo continua valido apos troca de email.
+              <span class="fixed">Apos troca de senha, tokens antigos sao invalidados por versao.</span>
+              <span class="done-label">parcialmente corrigido</span>
+            </li>
             <li>
               Usuario local em <code>localStorage</code> pode ficar desatualizado
               em alteracoes de perfil. No login, passou a ser hidratado por
