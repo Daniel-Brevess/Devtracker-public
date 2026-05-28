@@ -5,6 +5,7 @@ import org.danielbreves.backend.dto.session.CreateSessionResponseDTO;
 import org.danielbreves.backend.dto.session.SessionResponseDTO;
 import org.danielbreves.backend.entity.Session;
 import org.danielbreves.backend.entity.User;
+import org.danielbreves.backend.exception.NotFoundException;
 import org.danielbreves.backend.repository.SessionRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class SessionService {
 
     private User getCurrentUser(String currentEmail) {
         return userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     private CreateSessionResponseDTO toCreateSessionResponseDTO(

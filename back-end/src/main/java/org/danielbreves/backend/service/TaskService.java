@@ -10,6 +10,7 @@ import org.danielbreves.backend.dto.task.UpdateTaskResponseDTO;
 import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.Task;
 import org.danielbreves.backend.entity.User;
+import org.danielbreves.backend.exception.NotFoundException;
 import org.danielbreves.backend.repository.FocusRepository;
 import org.danielbreves.backend.repository.TaskRepository;
 import org.danielbreves.backend.repository.UserRepository;
@@ -40,10 +41,10 @@ public class TaskService {
             CreateTaskRequestDTO requestDTO
     ) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = focusRepository.findByIdAndUser(focusId, user)
-                .orElseThrow(() -> new RuntimeException("Focus not found"));
+                .orElseThrow(() -> new NotFoundException("Focus not found"));
 
         Task task = new Task(
                 null,
@@ -70,10 +71,10 @@ public class TaskService {
 
     public List<TaskResponseDTO> getTasksByFocus(String currentEmail, Long focusId) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = focusRepository.findByIdAndUser(focusId, user)
-                .orElseThrow(() -> new RuntimeException("Focus not found"));
+                .orElseThrow(() -> new NotFoundException("Focus not found"));
 
         return taskRepository.findAllByFocus(focus)
                 .stream()
@@ -96,13 +97,13 @@ public class TaskService {
             UpdateTaskRequestDTO requestDTO
     ) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = focusRepository.findByIdAndUser(focusId, user)
-                .orElseThrow(() -> new RuntimeException("Focus not found"));
+                .orElseThrow(() -> new NotFoundException("Focus not found"));
 
         Task task = taskRepository.findByIdAndFocus(taskId, focus)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new NotFoundException("Task not found"));
 
         task.setTitle(requestDTO.title());
         task.setDescription(requestDTO.description());
@@ -127,13 +128,13 @@ public class TaskService {
             Long taskId
     ) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = focusRepository.findByIdAndUser(focusId, user)
-                .orElseThrow(() -> new RuntimeException("Focus not found"));
+                .orElseThrow(() -> new NotFoundException("Focus not found"));
 
         Task task = taskRepository.findByIdAndFocus(taskId, focus)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new NotFoundException("Task not found"));
 
         taskRepository.delete(task);
 
@@ -146,13 +147,13 @@ public class TaskService {
             Long taskId
     ) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = focusRepository.findByIdAndUser(focusId, user)
-                .orElseThrow(() -> new RuntimeException("Focus not found"));
+                .orElseThrow(() -> new NotFoundException("Focus not found"));
 
         Task task = taskRepository.findByIdAndFocus(taskId, focus)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new NotFoundException("Task not found"));
 
         task.setStatus(!Boolean.TRUE.equals(task.getStatus()));
 

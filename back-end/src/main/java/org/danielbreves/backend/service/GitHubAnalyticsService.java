@@ -7,6 +7,8 @@ import org.danielbreves.backend.dto.github.GitHubCommitFrequencyDTO;
 import org.danielbreves.backend.dto.github.GitHubLanguageStatsDTO;
 import org.danielbreves.backend.dto.github.GitHubRepositoryStatsDTO;
 import org.danielbreves.backend.entity.User;
+import org.danielbreves.backend.exception.NotFoundException;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -56,7 +58,7 @@ public class GitHubAnalyticsService {
 
     public GitHubAnalyticsResponseDTO getAnalytics(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuario nao encontrado"));
         GitHubAnalyticsResponseDTO cachedAnalytics = getCachedAnalytics(user);
 
         if (cachedAnalytics != null) {
@@ -337,15 +339,15 @@ public class GitHubAnalyticsService {
             }
 
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new RuntimeException("GitHub analytics request failed");
+                throw new ValidationException("GitHub analytics request failed");
             }
 
             return objectMapper.readTree(response.body());
         } catch (IOException exception) {
-            throw new RuntimeException("Could not communicate with GitHub");
+            throw new ValidationException("Could not communicate with GitHub");
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("GitHub analytics request was interrupted");
+            throw new ValidationException("GitHub analytics request was interrupted");
         }
     }
 

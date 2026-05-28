@@ -1,5 +1,6 @@
 package org.danielbreves.backend.service;
 
+import org.danielbreves.backend.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +51,7 @@ public class GitHubTokenCryptoService {
             return Base64.getEncoder().encodeToString(iv) + ":" +
                     Base64.getEncoder().encodeToString(encrypted);
         } catch (Exception exception) {
-            throw new RuntimeException("Could not encrypt GitHub token");
+            throw new ValidationException("Could not encrypt GitHub token");
         }
     }
 
@@ -76,13 +77,13 @@ public class GitHubTokenCryptoService {
                     StandardCharsets.UTF_8
             );
         } catch (Exception exception) {
-            throw new RuntimeException("Could not decrypt GitHub token");
+            throw new ValidationException("Could not decrypt GitHub token");
         }
     }
 
     private SecretKeySpec buildSecretKey(String encryptionSecret) {
         if (encryptionSecret == null || encryptionSecret.isBlank()) {
-            throw new RuntimeException("GitHub token encryption is not configured");
+            throw new ValidationException("GitHub token encryption is not configured");
         }
 
         try {
@@ -93,7 +94,7 @@ public class GitHubTokenCryptoService {
 
             return new SecretKeySpec(key, "AES");
         } catch (Exception exception) {
-            throw new RuntimeException("Could not configure GitHub token encryption");
+            throw new ValidationException("Could not configure GitHub token encryption");
         }
     }
 }

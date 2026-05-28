@@ -8,6 +8,7 @@ import org.danielbreves.backend.dto.goal.UpdateGoalRequestDTO;
 import org.danielbreves.backend.dto.goal.UpdateGoalResponseDTO;
 import org.danielbreves.backend.entity.Goal;
 import org.danielbreves.backend.entity.User;
+import org.danielbreves.backend.exception.NotFoundException;
 import org.danielbreves.backend.repository.GoalRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -66,7 +67,7 @@ public class GoalService {
         User user = getCurrentUser(currentEmail);
 
         Goal goal = goalRepository.findByIdAndIdUser(goalId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Goal not found"));
+                .orElseThrow(() -> new NotFoundException("Goal not found"));
 
         goal.setTitle(requestDTO.title());
         goal.setDescription(requestDTO.description());
@@ -85,7 +86,7 @@ public class GoalService {
         User user = getCurrentUser(currentEmail);
 
         Goal goal = goalRepository.findByIdAndIdUser(goalId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Goal not found"));
+                .orElseThrow(() -> new NotFoundException("Goal not found"));
 
         goalRepository.delete(goal);
 
@@ -94,7 +95,7 @@ public class GoalService {
 
     private User getCurrentUser(String currentEmail) {
         return userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     private CreateGoalResponseDTO toCreateGoalResponseDTO(Goal goal) {

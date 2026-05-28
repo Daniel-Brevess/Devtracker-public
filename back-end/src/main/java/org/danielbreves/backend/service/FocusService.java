@@ -9,6 +9,7 @@ import org.danielbreves.backend.dto.focus.UpdateFocusRequestDTO;
 import org.danielbreves.backend.dto.focus.UpdateFocusResponseDTO;
 import org.danielbreves.backend.entity.Focus;
 import org.danielbreves.backend.entity.User;
+import org.danielbreves.backend.exception.NotFoundException;
 import org.danielbreves.backend.repository.FocusRepository;
 import org.danielbreves.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class FocusService {
             CreateFocusRequestDTO requestDTO
     ) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = new Focus(
                 null,
@@ -52,7 +53,7 @@ public class FocusService {
 
     public List<FocusResponseDTO> getAllFocuses(String currentEmail) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         return focusRepository.findAllByUser(user)
                 .stream()
@@ -70,10 +71,10 @@ public class FocusService {
             UpdateFocusRequestDTO requestDTO
     ) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = focusRepository.findByIdAndUser(requestDTO.id(), user)
-                .orElseThrow(() -> new RuntimeException("Focus not found"));
+                .orElseThrow(() -> new NotFoundException("Focus not found"));
 
         focus.setTitle(requestDTO.title());
 
@@ -92,10 +93,10 @@ public class FocusService {
             DeleteFocusRequestDTO requestDTO
     ) {
         User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Focus focus = focusRepository.findByIdAndUser(requestDTO.id(), user)
-                .orElseThrow(() -> new RuntimeException("Focus not found"));
+                .orElseThrow(() -> new NotFoundException("Focus not found"));
 
         focusRepository.delete(focus);
 

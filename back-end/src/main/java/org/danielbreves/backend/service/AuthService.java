@@ -11,6 +11,9 @@ import org.danielbreves.backend.dto.user.UserRequestDTO;
 import org.danielbreves.backend.dto.user.UserResponseDTO;
 import org.danielbreves.backend.entity.User;
 import org.danielbreves.backend.entity.enums.AuthProvider;
+import org.danielbreves.backend.exception.ConflictException;
+import org.danielbreves.backend.exception.UnauthorizedException;
+import org.danielbreves.backend.exception.ValidationException;
 import org.danielbreves.backend.repository.UserRepository;
 import org.danielbreves.backend.security.JwtService;
 import org.springframework.beans.factory.annotation.Value;
@@ -97,10 +100,10 @@ public class AuthService {
 
     public LoginResponseDTO loginUser(LoginRequestDTO request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Email ou senha invalidos"));
+                .orElseThrow(() -> new UnauthorizedException("Email ou senha invalidos"));
 
         if (user.getPassword() == null || !isLocalUser(user)) {
-            throw new RuntimeException("Email ou senha invalidos");
+            throw new UnauthorizedException("Email ou senha invalidos");
         }
 
         boolean passwordMatches = passwordEncoder.matches(
@@ -109,7 +112,7 @@ public class AuthService {
         );
 
         if (!passwordMatches) {
-            throw new RuntimeException("Email ou senha invalidos");
+            throw new UnauthorizedException("Email ou senha invalidos");
         }
 
         String token = jwtService.generateToken(user);
@@ -196,7 +199,7 @@ public class AuthService {
         JsonNode scopeNode = response.get("scope");
 
         if (accessTokenNode == null || accessTokenNode.asText().isBlank()) {
-            throw new RuntimeException("GitHub access token was not received");
+            throw new UnauthorizedException("GitHub access token was not received");
         }
 
         return new GitHubAccessTokenResponse(
@@ -218,7 +221,7 @@ public class AuthService {
 
             return objectMapper.treeToValue(response, GitHubUserDTO.class);
         } catch (IOException exception) {
-            throw new RuntimeException("Could not read GitHub user data");
+            throw new ValidationException("Could not read GitHub user data");
         }
     }
 
@@ -249,18 +252,18 @@ public class AuthService {
                     .filter(email -> Boolean.TRUE.equals(email.primary()))
                     .map(GitHubEmailDTO::email)
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException(
+                    .orElseThrow(() -> new ValidationException(
                             "GitHub account does not have a verified primary email"
                     ));
         } catch (IOException exception) {
-            throw new RuntimeException("Could not read GitHub email data");
+            throw new ValidationException("Could not read GitHub email data");
         }
     }
 
     private User createGitHubUser(GitHubUserDTO gitHubUser, String email) {
         userRepository.findByEmail(email)
                 .ifPresent(existingUser -> {
-                    throw new RuntimeException(
+                    throw new ConflictException(
                             "Email already exists. Account linking is not available yet"
                     );
                 });
@@ -313,15 +316,15 @@ public class AuthService {
             );
 
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new RuntimeException("GitHub request failed");
+                throw new ValidationException("GitHub request failed");
             }
 
             return objectMapper.readTree(response.body());
         } catch (IOException exception) {
-            throw new RuntimeException("Could not communicate with GitHub");
+            throw new ValidationException("Could not communicate with GitHub");
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("GitHub request was interrupted");
+            throw new ValidationException("GitHub request was interrupted");
         }
     }
 
@@ -332,7 +335,7 @@ public class AuthService {
                 githubClientSecret == null ||
                 githubClientSecret.isBlank()
         ) {
-            throw new RuntimeException("GitHub OAuth is not configured");
+            throw new ValidationException("GitHub OAuth is not configured");
         }
     }
 
