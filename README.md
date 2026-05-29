@@ -1,178 +1,322 @@
 # DevTracker
 
-DevTracker é uma aplicação full-stack para gerenciamento de produtividade de desenvolvedores, combinando:
+DevTracker is a developer-focused productivity and technical evolution platform.
 
-- **Backend**: Spring Boot 4 + Spring MVC + Spring Data JPA + PostgreSQL + Flyway + JWT + GitHub OAuth
-- **Frontend**: React 19 + Vite + Tailwind CSS + React Router + Axios
+It helps developers track their study sessions, focus areas, tasks, long-term goals, GitHub activity, contribution frequency, streaks, repositories, languages, and overall progress in one dashboard.
 
-O projeto permite registro/login, controle de metas, tarefas, sessões de foco, visão geral de desempenho e análise de GitHub.
+Access the app:
 
----
+https://dev-tracker-two-swart.vercel.app
 
-## Objetivo
+## What DevTracker Does
 
-Criar um painel de produtividade que ajude desenvolvedores a:
+DevTracker was built to answer a simple question:
 
-- registrar e acompanhar metas e tarefas
-- controlar sessões de foco
-- visualizar um panorama do progresso diário e semanal
-- integrar métricas do GitHub para análise de contribuição e linguagens
-- autenticar com conta local ou GitHub
+> Am I actually evolving as a developer?
 
----
+Instead of tracking productivity only by tasks, DevTracker combines personal planning with real development signals from GitHub.
 
-## Arquitetura
+The platform currently includes:
 
-### Backend (`back-end`)
+- Local authentication with email and password
+- GitHub OAuth authentication
+- Personal dashboard
+- Focus areas
+- Tasks grouped by focus
+- Long-term goals
+- Study/work sessions with real duration tracking
+- GitHub analytics
+- Commit frequency
+- Current streak based on GitHub contributions
+- Repository and language overview
+- Admin analytics for platform monitoring
 
-- **Spring Boot 4** com `spring-boot-starter-parent`
-- **Persistência**: Spring Data JPA + PostgreSQL
-- **Migrações**: Flyway
-- **Segurança**: Spring Security + JWT + OAuth2 GitHub customizado
-- **API REST** com controladores para:
-  - `/auth` — registro, login, GitHub OAuth
-  - `/user` — perfil, atualização, senha, exclusão
-  - `/focus` — controle de sessões de foco
-  - `/goal` — metas do usuário
-  - `/task` — tarefas relacionadas às metas
-  - `/session` — sessões de trabalho e desempenho
-  - `/overview` — visão geral personalizada
-  - `/github` — analytics do GitHub, dados de commit, linguagens e repos
-  - `/admin` — endpoints de administração e auditoria
+## Main Features
 
-### Frontend (`front-end`)
+### Overview
 
-- **Vite** para bundling e desenvolvimento rápido
-- **React 19** com **BrowserRouter**
-- **Tailwind CSS** para estilos utilitários
-- **Axios** para chamadas à API backend
-- **Autenticação JWT** no `Authorization: Bearer` header
+The overview is the main analytical panel of the app.
 
-Rotas principais:
+It shows a general summary of:
 
-- `/` — Landing Page
-- `/register` — cadastro local
-- `/login` — login local
-- `/auth/callback` — callback de OAuth GitHub
-- `/dashboard22` — dashboard privado
-- `/profileedit22` — edição de perfil privado
+- completed tasks
+- pending tasks
+- task completion rate
+- current streak
+- focus/session time
+- GitHub commits
+- repositories
+- most used languages
+- recent activity
 
----
+The goal is to give the user a quick view of their technical consistency and progress.
 
-## Conteúdo do repositório
+### Tasks
 
-- `back-end/` — aplicação Spring Boot
-- `front-end/` — aplicação React/Vite
-- `documentation/deployment_guide.md` — guia de deploy recomendado
-- `front-end/vercel.json` — configuração de roteamento para Vercel
+Tasks are organized by focus areas.
 
----
+A user can create focus groups, then add tasks inside each focus. Each task has:
 
-## Instalação e execução local
+- title
+- description
+- priority
+- completion status
+- creation date
 
-### Backend
+Task priorities use English enum values:
 
-1. Navegue até a pasta do backend:
-   ```bash
-   cd back-end
-   ```
-2. Execute o Maven wrapper:
-   ```bash
-   ./mvnw clean package -DskipTests
-   ```
-3. Execute a aplicação:
-   ```bash
-   java -jar target/back-end-0.0.1-SNAPSHOT.jar
-   ```
+- `LOW`
+- `MEDIUM`
+- `HIGH`
 
-A aplicação usa por padrão `http://localhost:8080` e lê `server.port=${PORT:8080}`.
+The app enforces limits to keep the MVP simple and intentional:
 
-### Frontend
+- each user can have up to 20 focus areas
+- each focus can have up to 25 active tasks
 
-1. Navegue até a pasta do frontend:
-   ```bash
-   cd front-end
-   ```
-2. Instale dependências:
-   ```bash
-   npm install
-   ```
-3. Inicie em modo de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
+### Goals
 
-Por padrão, o frontend busca a API em `http://localhost:8080` quando `VITE_API_URL` não está definido.
+Goals are used for long-term planning.
 
----
+Each goal has:
 
-## Variáveis de ambiente importantes
+- title
+- description
+- difficulty
+- status
+- progress information
 
-### Backend
+Goal difficulty values:
 
-A aplicação backend depende destas variáveis em produção:
+- `LOW`
+- `MEDIUM`
+- `HIGH`
 
-- `SPRING_PROFILES_ACTIVE=prod`
-- `PORT` — porta fornecida pelo serviço de hospedagem
-- `DEVTRACKER_DB_URL` — URL JDBC PostgreSQL, por exemplo `jdbc:postgresql://host/db?sslmode=require`
-- `DEVTRACKER_DB_USERNAME`
-- `DEVTRACKER_DB_PASSWORD`
-- `JWT_SECRET`
-- `JWT_EXPIRATION` (padrão: `3600000`)
-- `GITHUB_CLIENT_ID`
-- `GITHUB_CLIENT_SECRET`
-- `GITHUB_OAUTH_REDIRECT_URI` — callback do backend para GitHub OAuth
-- `GITHUB_TOKEN_ENCRYPTION_SECRET`
-- `FRONTEND_AUTH_CALLBACK_URL` — callback front-end após GitHub OAuth
-- `DEVTRACKER_CORS_ALLOWED_ORIGINS` — origens permitidas para CORS
-- `DEVTRACKER_ADMIN_EMAILS`
-- `FLYWAY_ENABLED=true`
-- `JPA_DDL_AUTO=validate`
+Goal status values:
 
-### Frontend
+- `TODO`
+- `IN_PROGRESS`
+- `DONE`
+- `DISCARDED`
 
-- `VITE_API_URL` — API backend pública
-- `VITE_ADMIN_EMAILS` — e-mails de administradores para a UI
+Each user can have up to 30 active goals.
 
----
+### Sessions
 
-## Deploy recomendado
+Sessions track real time spent studying, working, or focusing.
 
-O repositório inclui uma documentação dedicada em `documentation/deployment_guide.md` com a arquitetura desejada:
+The user chooses:
 
-- Frontend em **Vercel**
-- Backend em **Render**
-- Banco de dados em **Neon PostgreSQL**
-- GitHub OAuth configurado para redirecionar no backend e retornar para o frontend
+- session type
+- planned duration
 
----
+When the session starts, DevTracker shows a live timer in the dashboard header. The app saves the real duration when the session finishes or when the user stops it manually.
 
-## Desenvolvimento e testes
+Session duration is stored in seconds in the database and formatted as readable time in the frontend.
 
-### Backend
+### GitHub Analytics
 
-- Build: `./mvnw clean package`
-- Testes: `./mvnw test`
+DevTracker integrates with GitHub OAuth.
+
+The backend handles the OAuth flow and stores only what is needed for analytics. The frontend never receives or handles the GitHub access token directly.
+
+GitHub analytics include:
+
+- repositories
+- private repositories, if permission is granted
+- languages
+- commits/contributions
+- contribution frequency
+- current streak
+
+The current streak is based on the GitHub contribution calendar, using GitHub as the source of truth.
+
+### Admin Analytics
+
+The app includes a simple admin analytics section.
+
+Admin access is controlled by email through backend environment variables. This means the frontend can show or hide the admin menu, but the backend is the real authority.
+
+Admin analytics include:
+
+- total users
+- active users
+- local users
+- GitHub users
+- users created today
+- users created in the last 7 days
+
+## Architecture
+
+DevTracker is structured as a full-stack application with a clear separation between frontend, backend, and database.
 
 ### Frontend
 
-- Dev: `npm run dev`
-- Build: `npm run build`
-- Lint: `npm run lint`
+The frontend is built with:
 
----
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- Lucide React
 
-## Notas adicionais
+Responsibilities:
 
-- A aplicação backend usa **JWT** para autenticação sem sessão e um filtro `JwtAuthenticationFilter` para validar tokens nas requisições protegidas.
-- O fluxo de GitHub OAuth é tratado por `back-end/src/main/java/org/danielbreves/backend/controller/AuthController.java`.
-- O frontend armazena o token no cliente e redireciona para `/login` em caso de `401`.
+- user interface
+- routing
+- dashboard experience
+- forms and validation feedback
+- token storage
+- authenticated API requests
+- rendering analytics and user data
 
----
+The frontend communicates only with the backend API. It does not connect directly to the database or to GitHub APIs.
 
-## Aprimoramentos possíveis
+### Backend
 
-- adicionar documentação de API OpenAPI / Swagger
-- melhorar a UX de erros de login / registro
-- adicionar cobertura de testes automatizados no frontend
-- externalizar as configurações de ambiente em um `.env.example`
+The backend is built with:
+
+- Java
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- Flyway
+- PostgreSQL driver
+- JWT authentication
+
+Responsibilities:
+
+- authentication
+- GitHub OAuth flow
+- JWT generation and validation
+- business rules
+- input validation
+- user ownership checks
+- data persistence
+- GitHub API integration
+- admin analytics
+- error handling
+
+The backend is the source of truth for authorization and business rules.
+
+### Database
+
+The production database uses Supabase PostgreSQL.
+
+Database changes are managed with Flyway migrations.
+
+This keeps schema changes versioned and predictable across local, staging, and production environments.
+
+### Deployment
+
+The production deployment uses:
+
+- Vercel for the frontend
+- Render for the backend
+- Supabase for PostgreSQL
+
+The backend is deployed on Render using Docker.
+
+## Authentication Decisions
+
+DevTracker supports two authentication flows:
+
+### Local Authentication
+
+Users can register with:
+
+- name
+- username
+- email
+- password
+
+Passwords are hashed in the backend.
+
+Sensitive local account changes require the current password.
+
+### GitHub Authentication
+
+Users can also authenticate with GitHub.
+
+The GitHub flow works as both login and registration:
+
+- if the GitHub ID already exists, the user logs in
+- if it does not exist, a new account is created
+- GitHub users do not use a local DevTracker password
+
+GitHub users cannot update email, username, or password inside DevTracker. Those fields are managed by GitHub.
+
+The frontend receives only DevTracker's JWT, never the GitHub token.
+
+## Security Decisions
+
+Some important security decisions in the MVP:
+
+- JWT is generated by the backend
+- GitHub token is never exposed to the frontend
+- private routes require authentication
+- expired tokens are removed by the frontend
+- sensitive user updates require current password
+- GitHub users cannot change local credentials
+- admin routes are protected in the backend
+- secrets are stored in environment variables
+- production uses external PostgreSQL
+- database schema is managed by migrations
+- CORS is restricted by environment configuration
+
+## Business Rules
+
+Current MVP limits:
+
+- one user can have up to 20 focus areas
+- one focus can have up to 25 active tasks
+- one user can have up to 30 active goals
+- session duration is stored as real elapsed time
+- GitHub contribution streak is based on GitHub contribution data
+- admin access is email-based and configured through environment variables
+
+These limits were chosen to keep the MVP focused, predictable, and easy to validate.
+
+## Design Direction
+
+DevTracker uses a dark, developer-oriented interface.
+
+The visual direction focuses on:
+
+- clarity
+- focus
+- technical feel
+- dashboard-first experience
+- minimal friction
+- readable analytics
+- strong contrast
+- modern SaaS-style UI
+
+The landing page presents the product as a technical evolution platform, while the dashboard is built as the main usable experience.
+
+## Project Status
+
+DevTracker is currently an MVP.
+
+The main goal of this version is to validate:
+
+- authentication
+- GitHub OAuth
+- task tracking
+- goal tracking
+- session tracking
+- developer analytics
+- deployment flow
+- production database integration
+
+Future improvements may include:
+
+- refresh tokens or HttpOnly cookie authentication
+- richer GitHub analytics
+- historical user metrics
+- public profile pages
+- team features
+- notification system
+- improved admin panel
+- billing or plan management
+- deeper mobile responsiveness
