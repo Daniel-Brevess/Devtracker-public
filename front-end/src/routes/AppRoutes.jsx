@@ -6,7 +6,6 @@ import Login from "../pages/public/Login";
 import AuthCallback from "../pages/public/AuthCallback";
 
 import Dashboard22 from "../pages/private/Dashboard22";
-import ProfileEdit from "../pages/private/ProfileEdit";
 import ProfileEdit22 from "../pages/private/ProfileEdit22";
 
 import PrivateRoute from "./PrivateRoute";
@@ -51,7 +50,7 @@ export default function AppRoutes() {
           path="/profileedit"
           element={
             <PrivateRoute>
-              <ProfileEdit />
+              <Navigate to="/profileedit22" replace />
             </PrivateRoute>
           }
         />
@@ -64,6 +63,8 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
