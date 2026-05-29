@@ -33,6 +33,7 @@ public class User implements Serializable {
     private AuthProvider authProvider;
     private Long tokenVersion;
     private Date createdAt;
+    private Date lastSeenAt;
 
     public User() {
     }
@@ -138,6 +139,14 @@ public class User implements Serializable {
 
     public void setTokenVersion(Long tokenVersion) {
         this.tokenVersion = tokenVersion;
+    }
+
+    public Date getLastSeenAt() {
+        return lastSeenAt;
+    }
+
+    public void setLastSeenAt(Date lastSeenAt) {
+        this.lastSeenAt = lastSeenAt;
     }
 
     @PrePersist

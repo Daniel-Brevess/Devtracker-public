@@ -13,9 +13,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final long LAST_SEEN_UPDATE_INTERVAL_MILLIS = 60_000L;
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -53,6 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
+            updateLastSeenIfNeeded(user);
+
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             email,
@@ -66,5 +71,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void updateLastSeenIfNeeded(User user) {
+        Date now = new Date();
+        Date lastSeenAt = user.getLastSeenAt();
+
+        if (
+                lastSeenAt == null ||
+                        now.getTime() - lastSeenAt.getTime() >=
+                                LAST_SEEN_UPDATE_INTERVAL_MILLIS
+        ) {
+            user.setLastSeenAt(now);
+            userRepository.save(user);
+        }
     }
 }
