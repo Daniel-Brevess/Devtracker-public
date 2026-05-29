@@ -1,0 +1,89 @@
+# DevTracker public repository ignore file
+# Copy this file to .gitignore in the public portfolio repository.
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.properties
+*.properties.local
+*.secret
+*.secrets
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+
+# Local database and runtime files
+*.db
+*.sqlite
+*.sqlite3
+*.h2.db
+*.mv.db
+*.trace.db
+
+# Java / Maven / Spring Boot
+target/
+*/target/
+.mvn/wrapper/maven-wrapper.jar
+HELP.md
+
+# Node / Vite / frontend builds
+node_modules/
+*/node_modules/
+dist/
+*/dist/
+dist-ssr/
+coverage/
+*/coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Eclipse / STS
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# OS and temp files
+*.tmp
+*.temp
+*.bak
+*.backup
+~$*
+
+# Generated screenshots or exports that may contain private data
+screenshots/
+exports/
+private/
+local/
