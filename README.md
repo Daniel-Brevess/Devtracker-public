@@ -146,6 +146,83 @@ Admin analytics include:
 - users created today
 - users created in the last 7 days
 
+  ## Tech Stack
+
+### Frontend
+
+- React
+- Vite
+- JavaScript
+- Tailwind CSS
+- Axios
+- React Router
+- Lucide React
+
+### Backend
+
+- Java
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- Bean Validation
+- Flyway
+- JWT
+- Maven
+- Docker
+
+### Database
+
+- PostgreSQL
+- Supabase PostgreSQL
+- Flyway migrations
+
+### Authentication
+
+- Local authentication with email and password
+- GitHub OAuth
+- JWT-based authentication
+
+### Deployment
+
+- Vercel
+- Render
+- Docker
+- Supabase
+
+### External APIs
+
+- GitHub OAuth API
+- GitHub REST API
+- GitHub GraphQL API
+
+### Development Tools
+
+- Git
+- GitHub
+- IntelliJ IDEA
+- VS Code
+- Postman
+- pgAdmin
+- Supabase Dashboard
+- Render Dashboard
+- Vercel Dashboard
+E se quiser deixar mais “portfolio”, coloca também:
+
+md
+
+
+## Tools And Technologies Used
+
+DevTracker was built using a modern full-stack architecture.
+
+The frontend uses React with Vite for fast development and optimized builds. Tailwind CSS is used for styling, Axios for HTTP communication, React Router for routing, and Lucide React for icons.
+
+The backend uses Java with Spring Boot, Spring Security, Spring Data JPA, Bean Validation, Flyway migrations, JWT authentication, and Docker for production deployment.
+
+The database is PostgreSQL, hosted on Supabase. Database schema changes are versioned with Flyway.
+
+The application is deployed with Vercel for the frontend and
+
 ## Architecture
 
 DevTracker is structured as a full-stack application with a clear separation between frontend, backend, and database.
