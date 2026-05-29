@@ -11,14 +11,20 @@ public record UserUpdateRequestDTO(
         String name,
 
         @NotBlank(message = "Username is required")
-        @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+        @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
+        @Pattern(
+                regexp = "^[a-zA-Z0-9._-]+$",
+                message = "Username can only contain letters, numbers, dots, underscores and hyphens"
+        )
         String username,
 
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
+        @Size(max = 120, message = "Email must have at most 120 characters")
         String email,
 
         @NotBlank(message = "Current password is required")
+        @Size(max = 72, message = "Current password must have at most 72 characters")
         String currentPassword
 ) {
 }
