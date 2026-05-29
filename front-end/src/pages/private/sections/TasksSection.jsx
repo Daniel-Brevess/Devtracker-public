@@ -30,20 +30,20 @@ const taskPriorityOptions = [
   {
     activeClassName: "bg-emerald-500/10 text-emerald-300",
     hoverClassName: "hover:bg-emerald-500/10 hover:text-emerald-300",
-    label: "Baixa",
-    value: "BAIXA",
+    label: "Low",
+    value: "LOW",
   },
   {
     activeClassName: "bg-yellow-500/10 text-yellow-300",
     hoverClassName: "hover:bg-yellow-500/10 hover:text-yellow-300",
-    label: "Media",
-    value: "MEDIA",
+    label: "Medium",
+    value: "MEDIUM",
   },
   {
     activeClassName: "bg-red-500/10 text-red-300",
     hoverClassName: "hover:bg-red-500/10 hover:text-red-300",
-    label: "Alta",
-    value: "ALTA",
+    label: "High",
+    value: "HIGH",
   },
 ];
 
@@ -93,7 +93,7 @@ export default function TasksSection() {
   const [taskFormFocusId, setTaskFormFocusId] = useState(null);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
-  const [taskPriority, setTaskPriority] = useState("MEDIA");
+  const [taskPriority, setTaskPriority] = useState("MEDIUM");
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
   const [createTaskMessage, setCreateTaskMessage] = useState("");
   const [isCreatingTask, setIsCreatingTask] = useState(false);
@@ -101,7 +101,7 @@ export default function TasksSection() {
   const [taskBeingEdited, setTaskBeingEdited] = useState(null);
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [editTaskDescription, setEditTaskDescription] = useState("");
-  const [editTaskPriority, setEditTaskPriority] = useState("MEDIA");
+  const [editTaskPriority, setEditTaskPriority] = useState("MEDIUM");
   const [isEditTaskPriorityMenuOpen, setIsEditTaskPriorityMenuOpen] =
     useState(false);
   const [editTaskMessage, setEditTaskMessage] = useState("");
@@ -230,7 +230,7 @@ export default function TasksSection() {
     setTaskFormFocusId(focusId);
     setTaskTitle("");
     setTaskDescription("");
-    setTaskPriority("MEDIA");
+    setTaskPriority("MEDIUM");
     setCreateTaskMessage("");
     setIsPriorityMenuOpen(false);
   }
@@ -241,7 +241,7 @@ export default function TasksSection() {
     setTaskFormFocusId(null);
     setTaskTitle("");
     setTaskDescription("");
-    setTaskPriority("MEDIA");
+    setTaskPriority("MEDIUM");
     setCreateTaskMessage("");
     setIsPriorityMenuOpen(false);
   }
@@ -266,7 +266,7 @@ export default function TasksSection() {
     });
     setEditTaskTitle(task.title);
     setEditTaskDescription(task.description || "");
-    setEditTaskPriority(task.priority || "MEDIA");
+    setEditTaskPriority(task.priority || "MEDIUM");
     setEditTaskMessage("");
     setIsEditTaskPriorityMenuOpen(false);
   }
@@ -277,7 +277,7 @@ export default function TasksSection() {
     setTaskBeingEdited(null);
     setEditTaskTitle("");
     setEditTaskDescription("");
-    setEditTaskPriority("MEDIA");
+    setEditTaskPriority("MEDIUM");
     setEditTaskMessage("");
     setIsEditTaskPriorityMenuOpen(false);
   }
@@ -499,7 +499,7 @@ export default function TasksSection() {
       setTaskFormFocusId(null);
       setTaskTitle("");
       setTaskDescription("");
-      setTaskPriority("MEDIA");
+      setTaskPriority("MEDIUM");
       setCreateTaskMessage("");
       setIsPriorityMenuOpen(false);
     } catch (error) {
@@ -551,7 +551,7 @@ export default function TasksSection() {
       setTaskBeingEdited(null);
       setEditTaskTitle("");
       setEditTaskDescription("");
-      setEditTaskPriority("MEDIA");
+      setEditTaskPriority("MEDIUM");
       setEditTaskMessage("");
       setIsEditTaskPriorityMenuOpen(false);
     } catch (error) {

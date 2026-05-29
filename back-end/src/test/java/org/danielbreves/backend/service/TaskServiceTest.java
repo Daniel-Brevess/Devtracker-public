@@ -49,7 +49,7 @@ class TaskServiceTest {
                 new CreateTaskRequestDTO(
                         "Read chapter",
                         "Read the first chapter",
-                        TaskPriority.ALTA
+                        TaskPriority.HIGH
                 );
         LocalDateTime createdAt = LocalDateTime.now();
 
@@ -78,7 +78,7 @@ class TaskServiceTest {
         assertEquals(10L, responseDTO.idFocus());
         assertEquals("Read chapter", responseDTO.title());
         assertEquals("Read the first chapter", responseDTO.description());
-        assertEquals(TaskPriority.ALTA, responseDTO.priority());
+        assertEquals(TaskPriority.HIGH, responseDTO.priority());
         assertEquals(false, responseDTO.status());
         assertEquals(createdAt, responseDTO.createdAt());
     }
@@ -101,7 +101,7 @@ class TaskServiceTest {
                 new CreateTaskRequestDTO(
                         "Read chapter",
                         "Read the first chapter",
-                        TaskPriority.ALTA
+                        TaskPriority.HIGH
                 );
 
         when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
@@ -137,7 +137,7 @@ class TaskServiceTest {
                 focus,
                 "Read chapter",
                 "Read the first chapter",
-                TaskPriority.ALTA,
+                TaskPriority.HIGH,
                 false,
                 createdAt
         );
@@ -157,7 +157,7 @@ class TaskServiceTest {
         assertEquals(10L, responseDTO.get(0).idFocus());
         assertEquals("Read chapter", responseDTO.get(0).title());
         assertEquals("Read the first chapter", responseDTO.get(0).description());
-        assertEquals(TaskPriority.ALTA, responseDTO.get(0).priority());
+        assertEquals(TaskPriority.HIGH, responseDTO.get(0).priority());
         assertEquals(false, responseDTO.get(0).status());
         assertEquals(createdAt, responseDTO.get(0).createdAt());
     }
@@ -182,14 +182,14 @@ class TaskServiceTest {
                 focus,
                 "Read chapter",
                 "Read the first chapter",
-                TaskPriority.ALTA,
+                TaskPriority.HIGH,
                 false,
                 createdAt
         );
         UpdateTaskRequestDTO requestDTO = new UpdateTaskRequestDTO(
                 "Updated chapter",
                 "Read the second chapter",
-                TaskPriority.MEDIA
+                TaskPriority.MEDIUM
         );
 
         when(userRepository.findByEmail(currentEmail)).thenReturn(Optional.of(user));
@@ -208,7 +208,7 @@ class TaskServiceTest {
         assertEquals(10L, responseDTO.idFocus());
         assertEquals("Updated chapter", responseDTO.title());
         assertEquals("Read the second chapter", responseDTO.description());
-        assertEquals(TaskPriority.MEDIA, responseDTO.priority());
+        assertEquals(TaskPriority.MEDIUM, responseDTO.priority());
         assertEquals(false, responseDTO.status());
         assertEquals(createdAt, responseDTO.createdAt());
     }
@@ -233,7 +233,7 @@ class TaskServiceTest {
                 focus,
                 "Read chapter",
                 "Read the first chapter",
-                TaskPriority.ALTA,
+                TaskPriority.HIGH,
                 false,
                 createdAt
         );
@@ -272,7 +272,7 @@ class TaskServiceTest {
                 focus,
                 "Read chapter",
                 "Read the first chapter",
-                TaskPriority.ALTA,
+                TaskPriority.HIGH,
                 false,
                 createdAt
         );
@@ -293,7 +293,7 @@ class TaskServiceTest {
         assertEquals(10L, responseDTO.idFocus());
         assertEquals("Read chapter", responseDTO.title());
         assertEquals("Read the first chapter", responseDTO.description());
-        assertEquals(TaskPriority.ALTA, responseDTO.priority());
+        assertEquals(TaskPriority.HIGH, responseDTO.priority());
         assertEquals(true, responseDTO.status());
         assertEquals(createdAt, responseDTO.createdAt());
     }
