@@ -14,6 +14,7 @@ import {
   UserCircle2,
   Lock,
   X,
+  ShieldCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -34,6 +35,8 @@ import DevLogo from "../../assets/DevLogoBranco.png";
 import GoalsSection from "./sections/GoalsSection";
 import OverviewSection from "./sections/OverviewSection";
 import TasksSection from "./sections/TasksSection";
+import AdminAnalyticsSection from "./sections/AdminAnalyticsSection";
+import { isAdminUser } from "../../services/admin/adminService";
 
 const activeSessionStorageKey = "devtracker.activeSession";
 
@@ -107,6 +110,7 @@ export default function Dashboard2() {
   const user = getCurrentUser();
   const userInitials = getUserInitials();
   const isGitHubAccount = isGitHubUser(user);
+  const isAdminAccount = isAdminUser(user);
   const displayUsername = getDisplayUsername(user);
 
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
@@ -344,6 +348,9 @@ export default function Dashboard2() {
     { icon: ListChecks, id: "tasks", label: "Tasks" },
     { icon: Target, id: "goals", label: "Goals" },
     { icon: Timer, id: "sessions", label: "Sessions" },
+    ...(isAdminAccount
+      ? [{ icon: ShieldCheck, id: "admin", label: "Admin" }]
+      : []),
     { icon: Settings, id: "settings", label: "Settings" },
   ];
 
@@ -351,6 +358,7 @@ export default function Dashboard2() {
     overview: <OverviewSection />,
     tasks: <TasksSection />,
     goals: <GoalsSection />,
+    admin: <AdminAnalyticsSection />,
   };
   const remainingSessionSeconds = activeSession
     ? Math.max(activeSession.plannedDuration - elapsedSeconds, 0)
